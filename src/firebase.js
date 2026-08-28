@@ -2,14 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, push, remove } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyCPBL70PyxJ7s4wgTj1rbnj9J2UVUKxUSg",
+  authDomain: "mis-tareas-ec9b2.firebaseapp.com",
+  databaseURL: "https://mis-tareas-ec9b2-default-rtdb.firebaseio.com",
+  projectId: "mis-tareas-ec9b2",
+  storageBucket: "mis-tareas-ec9b2.firebasestorage.app",
+  messagingSenderId: "1038929235758",
+  appId: "1:1038929235758:web:8c9c96ca16633af949f4bf",
+  measurementId: "G-DQ5V9YDB5R"
 };
 
 let app;
