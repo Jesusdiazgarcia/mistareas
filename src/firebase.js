@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, push, remove } from 'firebase/database';
+import { getDatabase, ref, onValue, set, push, remove, get } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCPBL70PyxJ7s4wgTj1rbnj9J2UVUKxUSg",
@@ -22,7 +22,7 @@ try {
   console.warn('Firebase init failed, using localStorage fallback:', e);
 }
 
-export { db, ref, onValue, set, push, remove };
+export { db, ref, onValue, set, push, remove, get };
 
 export function isFirebaseAvailable() {
   return !!db;
