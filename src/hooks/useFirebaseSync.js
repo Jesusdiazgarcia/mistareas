@@ -72,42 +72,34 @@ export function useFirebaseSync() {
         return () => { unsubTasks(); unsubHistory(); };
     }, []);
 
-    // One-time migration from old random user ID to shared ID
+    // One-time migration: copy old data to shared path if shared is empty
     useEffect(() => {
         if (!isFirebaseAvailable()) return;
-        const oldId = localStorage.getItem('mis_tareas_uid');
-        if (!oldId || oldId === SHARED_USER_ID) return;
+        const knownOldIds = ['user_xuc6smil'];
 
-        const oldTasksRef = ref(db, `users/${oldId}/tasks`);
-        const oldHistoryRef = ref(db, `users/${oldId}/history`);
+        const sharedTasksRef = ref(db, `users/${SHARED_USER_ID}/tasks`);
+        get(sharedTasksRef).then(snap => {
+            const sharedData = snap.val();
+            if (sharedData && Array.isArray(sharedData) && sharedData.length > 0) return;
 
-        get(oldTasksRef).then(snap => {
-            const oldData = snap.val();
-            if (oldData && Array.isArray(oldData) && oldData.length > 0) {
-                const sharedRef = ref(db, `users/${SHARED_USER_ID}/tasks`);
-                get(sharedRef).then(sharedSnap => {
-                    const sharedData = sharedSnap.val();
-                    if (!sharedData || (Array.isArray(sharedData) && sharedData.length === 0)) {
-                        set(sharedRef, oldData);
+            for (const oldId of knownOldIds) {
+                const oldTasksRef = ref(db, `users/${oldId}/tasks`);
+                get(oldTasksRef).then(taskSnap => {
+                    const oldData = taskSnap.val();
+                    if (oldData && Array.isArray(oldData) && oldData.length > 0) {
+                        set(sharedTasksRef, oldData);
+                    }
+                });
+                const oldHistoryRef = ref(db, `users/${oldId}/history`);
+                const sharedHistoryRef = ref(db, `users/${SHARED_USER_ID}/history`);
+                get(oldHistoryRef).then(histSnap => {
+                    const oldData = histSnap.val();
+                    if (oldData && Array.isArray(oldData) && oldData.length > 0) {
+                        set(sharedHistoryRef, oldData);
                     }
                 });
             }
         });
-
-        get(oldHistoryRef).then(snap => {
-            const oldData = snap.val();
-            if (oldData && Array.isArray(oldData) && oldData.length > 0) {
-                const sharedRef = ref(db, `users/${SHARED_USER_ID}/history`);
-                get(sharedRef).then(sharedSnap => {
-                    const sharedData = sharedSnap.val();
-                    if (!sharedData || (Array.isArray(sharedData) && sharedData.length === 0)) {
-                        set(sharedRef, oldData);
-                    }
-                });
-            }
-        });
-
-        localStorage.removeItem('mis_tareas_uid');
     }, []);
 
     // Sync tasks to Firebase
