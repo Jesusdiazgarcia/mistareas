@@ -3,7 +3,12 @@ import { categories, priorities, repeats, formatDate, formatMinutes } from '../u
 import { parseMarkdown } from '../utils/markdown';
 import { generateTaskICS, downloadICS } from '../utils/calendarExport';
 
-export default function TaskItem({ task, selected, onToggle, onDelete, onTogglePin, onToggleSubtask, onAddSubtask, onToggleSelect, onEdit, collapsed, onToggleCollapse, onSaveNotes, onDragStart, onDragEnd, onDragOver, onDrop }) {
+function calcActualMinutes(startedAt, completedAt) {
+    if (!startedAt || !completedAt) return 0;
+    return Math.round((new Date(completedAt) - new Date(startedAt)) / 60000);
+}
+
+export default function TaskItem({ task, selected, onToggle, onDelete, onTogglePin, onToggleSubtask, onAddSubtask, onToggleSelect, onEdit, collapsed, onToggleCollapse, onSaveNotes, onToggleInProgress, onDragStart, onDragEnd, onDragOver, onDrop }) {
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(task.text);
     const [showNotes, setShowNotes] = useState(false);
@@ -39,6 +44,7 @@ export default function TaskItem({ task, selected, onToggle, onDelete, onToggleP
     };
 
     const borderColor = task.pinned ? '#f59e0b' : (category && category.id !== 'none' ? category.color : 'transparent');
+    const actualMinutes = calcActualMinutes(task.startedAt, task.completedAt);
 
     return (
         <li className={`group relative flex items-start gap-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius-xl)] mb-2.5 transition-all duration-200 ${selected ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]' : ''} ${task.completed ? 'opacity-55' : ''} ${showSubtaskInput ? 'ring-1 ring-[var(--accent)]' : ''}`}
@@ -87,6 +93,14 @@ export default function TaskItem({ task, selected, onToggle, onDelete, onToggleP
                     )}
                     {task.estimatedMinutes > 0 && (
                         <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full bg-[var(--accent-light)] text-[var(--accent)]">{formatMinutes(task.estimatedMinutes)}</span>
+                    )}
+                    {task.completed && actualMinutes > 0 && task.estimatedMinutes > 0 && (
+                        <span className={`text-[10px] font-bold px-2.5 py-[3px] rounded-full ${actualMinutes <= task.estimatedMinutes ? 'bg-[var(--success-light)] text-[var(--success)]' : 'bg-[var(--danger-light)] text-[var(--danger)]'}`}>
+                            {actualMinutes <= task.estimatedMinutes ? '✓' : '✗'} {formatMinutes(actualMinutes)} real
+                        </span>
+                    )}
+                    {task.completed && actualMinutes > 0 && !task.estimatedMinutes && (
+                        <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full bg-[var(--success-light)] text-[var(--success)]">⏱ {formatMinutes(actualMinutes)} real</span>
                     )}
                 </div>
 
@@ -156,6 +170,12 @@ export default function TaskItem({ task, selected, onToggle, onDelete, onToggleP
                     <div className="absolute right-2 top-12 bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius-lg)] z-20 overflow-hidden min-w-[180px] animate-[scaleIn_0.15s_ease]"
                         style={{boxShadow: 'var(--shadow-xl)'}} onMouseLeave={() => setShowActions(false)}>
                         <div className="p-1.5">
+                            {!task.completed && (
+                                <button onClick={() => { onToggleInProgress(task.id); setShowActions(false); }}
+                                    className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--hover)] rounded-[12px] flex items-center gap-3 transition-all duration-150 ${task.inProgress ? 'text-[var(--warning)] font-bold' : 'text-[var(--text)]'}`}>
+                                    <span className="text-base w-5 text-center">{task.inProgress ? '⏸' : '▶'}</span> {task.inProgress ? 'Pausar' : 'Iniciar'}
+                                </button>
+                            )}
                             <button onClick={() => { onTogglePin(task.id); setShowActions(false); }}
                                 className="w-full px-4 py-2.5 text-left text-sm text-[var(--text)] hover:bg-[var(--hover)] rounded-[12px] flex items-center gap-3 transition-all duration-150">
                                 <span className="text-base w-5 text-center">{task.pinned ? '☆' : '★'}</span> {task.pinned ? 'Desfijar' : 'Fijar'}

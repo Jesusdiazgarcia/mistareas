@@ -179,7 +179,13 @@ export default function App() {
         let newTasks = tasks.map(t => {
             if (t.id !== id) return t;
             const completed = !t.completed;
-            return { ...t, completed, inProgress: completed ? false : t.inProgress };
+            return {
+                ...t,
+                completed,
+                inProgress: completed ? false : t.inProgress,
+                completedAt: completed ? new Date().toISOString() : null,
+                startedAt: completed ? t.startedAt : (t.inProgress ? t.startedAt : null)
+            };
         });
 
         if (!task.completed) {
@@ -187,6 +193,7 @@ export default function App() {
             if (task.repeat && task.repeat !== 'none') {
                 newTasks.push({
                     ...task, id: generateId(newTasks), completed: false, inProgress: false,
+                    startedAt: null, completedAt: null,
                     createdAt: new Date().toISOString()
                 });
                 addHistory('created', `[Recurrente] ${task.text}`);
@@ -250,6 +257,18 @@ export default function App() {
         });
     }, []);
 
+    const toggleInProgress = useCallback((id) => {
+        syncTasks(tasks.map(t => {
+            if (t.id !== id) return t;
+            const newInProgress = !t.inProgress;
+            return {
+                ...t,
+                inProgress: newInProgress,
+                startedAt: newInProgress ? new Date().toISOString() : null
+            };
+        }));
+    }, [tasks, syncTasks]);
+
     const selectAll = useCallback(() => {
         setSelectedIds(prev => {
             if (prev.size === filteredTasks.length) return new Set();
@@ -295,9 +314,9 @@ export default function App() {
     const moveKanbanTask = useCallback((taskId, status) => {
         syncTasks(tasks.map(t => {
             if (t.id !== taskId) return t;
-            if (status === 'completed') return { ...t, completed: true, inProgress: false };
-            if (status === 'in-progress') return { ...t, completed: false, inProgress: true };
-            return { ...t, completed: false, inProgress: false };
+            if (status === 'completed') return { ...t, completed: true, inProgress: false, completedAt: new Date().toISOString() };
+            if (status === 'in-progress') return { ...t, completed: false, inProgress: true, startedAt: new Date().toISOString() };
+            return { ...t, completed: false, inProgress: false, startedAt: null, completedAt: null };
         }));
     }, [tasks, syncTasks]);
 
@@ -450,7 +469,7 @@ export default function App() {
                             <TaskItem key={task.id} task={task} selected={selectedIds.has(task.id)}
                                 onToggle={toggleTask} onDelete={deleteTask} onTogglePin={togglePin}
                                 onToggleSubtask={toggleSubtask} onAddSubtask={addSubtask}
-                                onToggleSelect={toggleSelect} onEdit={editTask}
+                                onToggleSelect={toggleSelect} onEdit={editTask} onToggleInProgress={toggleInProgress}
                                 collapsed={collapsedSubtasks.has(task.id)} onToggleCollapse={toggleCollapse}
                                 onSaveNotes={saveNotes}
                                 onDragStart={(e) => { setDraggedId(task.id); e.dataTransfer.effectAllowed = 'move'; }}

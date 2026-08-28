@@ -1,5 +1,10 @@
 import { categories, formatDate, formatMinutes, escapeHtml } from '../utils/helpers';
 
+function calcActualMinutes(startedAt, completedAt) {
+    if (!startedAt || !completedAt) return 0;
+    return Math.round((new Date(completedAt) - new Date(startedAt)) / 60000);
+}
+
 export default function WeeklyReport({ tasks }) {
     const now = new Date();
     const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
@@ -15,6 +20,13 @@ export default function WeeklyReport({ tasks }) {
     })).filter(c => c.completed > 0 || c.created > 0);
     const rate = createdThisWeek.length > 0 ? Math.round((completedThisWeek.length / createdThisWeek.length) * 100) : 0;
     const maxCat = Math.max(...catBreakdown.map(c => Math.max(c.completed, c.created)), 1);
+
+    const tasksWithTime = completedThisWeek.filter(t => t.startedAt && t.completedAt);
+    const totalActual = tasksWithTime.reduce((s, t) => s + calcActualMinutes(t.startedAt, t.completedAt), 0);
+    const avgAccuracy = tasksWithTime.length > 0 ? Math.round((tasksWithTime.filter(t => {
+        const actual = calcActualMinutes(t.startedAt, t.completedAt);
+        return t.estimatedMinutes > 0 && actual <= t.estimatedMinutes * 1.2;
+    }).length / tasksWithTime.length) * 100) : 0;
 
     return (
         <>
@@ -37,15 +49,27 @@ export default function WeeklyReport({ tasks }) {
                 <div className="h-2.5 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#4c6ef5] to-[#7c3aed] rounded-full transition-all duration-500" style={{ width: `${rate}%` }} /></div>
                 <div className="text-[24px] font-extrabold text-[var(--accent)] mt-2">{rate}%</div>
             </div>
-            {totalEst > 0 && (
+
+            {tasksWithTime.length > 0 && (
                 <div className="bg-[var(--hover)] rounded-[var(--radius)] p-4 mb-4 border border-[var(--border)]">
-                    <div className="text-sm text-[var(--text-muted)] font-bold mb-2">Tiempo estimado vs completado</div>
-                    <div className="flex gap-6 mt-2">
-                        <div className="flex flex-col items-center"><span className="text-base font-bold">{formatMinutes(totalEst)}</span><span className="text-[11px] text-[var(--text-muted)]">Estimado</span></div>
-                        <div className="flex flex-col items-center"><span className="text-base font-bold">{formatMinutes(completedEst)}</span><span className="text-[11px] text-[var(--text-muted)]">Completado</span></div>
+                    <div className="text-sm text-[var(--text-muted)] font-bold mb-2">Tiempo esta semana</div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div className="text-[16px] font-extrabold text-[var(--accent)]">{formatMinutes(completedEst)}</div>
+                            <div className="text-[10px] text-[var(--text-muted)] font-bold">Estimado</div>
+                        </div>
+                        <div>
+                            <div className="text-[16px] font-extrabold text-[var(--success)]">{formatMinutes(totalActual)}</div>
+                            <div className="text-[10px] text-[var(--text-muted)] font-bold">Real</div>
+                        </div>
+                        <div>
+                            <div className="text-[16px] font-extrabold" style={{color: avgAccuracy >= 80 ? 'var(--success)' : 'var(--warning)'}}>{avgAccuracy}%</div>
+                            <div className="text-[10px] text-[var(--text-muted)] font-bold">Precisión</div>
+                        </div>
                     </div>
                 </div>
             )}
+
             {catBreakdown.length > 0 && (
                 <div className="mt-4">
                     <h3 className="text-[14px] font-bold text-[var(--text)] mb-3">Por Categoría (esta semana)</h3>
