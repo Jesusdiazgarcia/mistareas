@@ -25,7 +25,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html}']
+        globPatterns: ['**/*.{js,css,html,mjs}']
       }
     })
   ],
