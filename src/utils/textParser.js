@@ -5,8 +5,6 @@ const categoryMap = {
     'seguridad': 'health', 'qa': 'personal', 'feature': 'ideas'
 };
 
-const priorityMap = { 'p0': 'high', 'p1': 'medium', 'p2': 'low', 'p3': 'none' };
-
 const nonTaskHeaders = ['instrucciones', 'resumen', 'estimación', 'estimacion', 'notas legales', 'checklist de lanzamiento'];
 
 export function parseTasksFromText(text) {
@@ -33,7 +31,7 @@ export function parseTasksFromText(text) {
             continue;
         }
 
-        if (/^[\-=]{3,}/.test(trimmed)) continue;
+        if (/^[=-]{3,}/.test(trimmed)) continue;
         if (/^\|[\s\-:|]+\|$/.test(trimmed)) continue;
 
         if (/^\|.*\|$/.test(trimmed)) {
@@ -51,7 +49,7 @@ export function parseTasksFromText(text) {
                 .replace(/~~(.+?)~~/g, '$1').replace(/\[(.+?)\]\(.+?\)/g, '$1').trim();
 
             if (taskText.length < 5 || taskText.length > 500) continue;
-            if (/^\d+[\s\-]*\d*\s*(días?|semanas?|meses?|horas?|minutos?|día|week|month|day)/i.test(taskText)) continue;
+            if (/^\d+[\s-]*\d*\s*(días?|semanas?|meses?|horas?|minutos?|día|week|month|day)/i.test(taskText)) continue;
 
             let description = '';
             let categoryName = '';

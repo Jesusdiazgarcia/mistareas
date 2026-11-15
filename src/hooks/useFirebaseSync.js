@@ -19,24 +19,18 @@ function saveLocal(key, value) {
 export function useFirebaseSync() {
     const [tasks, setTasks] = useState(() => loadLocal(LS_KEYS.tasks, []));
     const [history, setHistory] = useState(() => loadLocal(LS_KEYS.history, []));
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [syncStatus, setSyncStatus] = useState('local');
+    const [isSyncing, setIsSyncing] = useState(() => isFirebaseAvailable());
+    const [syncStatus, setSyncStatus] = useState(() => isFirebaseAvailable() ? 'connecting' : 'local');
     const userIdRef = useRef(SHARED_USER_ID);
     const firebaseActive = useRef(false);
 
     // Firebase listener
     useEffect(() => {
-        if (!isFirebaseAvailable()) {
-            setSyncStatus('local');
-            return;
-        }
+        if (!isFirebaseAvailable()) return;
 
         const userId = userIdRef.current;
         const tasksRef = ref(db, `users/${userId}/tasks`);
         const historyRef = ref(db, `users/${userId}/history`);
-
-        setIsSyncing(true);
-        setSyncStatus('connecting');
 
         let gotTasks = false;
         let gotHistory = false;

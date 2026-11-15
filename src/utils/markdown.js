@@ -27,7 +27,15 @@ export function parseMarkdown(text) {
     escaped = escaped.replace(/\*(.+?)\*/g, '<em>$1</em>');
     escaped = escaped.replace(/`(.+?)`/g, '<code>$1</code>');
     escaped = escaped.replace(/~~(.+?)~~/g, '<del>$1</del>');
-    escaped = escaped.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    escaped = escaped.replace(/\[(.+?)\]\((.+?)\)/g, (match, text, url) => {
+        const cleanUrl = url.trim();
+        const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(cleanUrl);
+        const safeScheme = /^(https?:|mailto:|tel:)/i.test(cleanUrl);
+        // Block javascript:, data:, vbscript: and any other unsafe scheme -> render as plain text
+        if (hasScheme && !safeScheme) return match;
+        const safeHref = cleanUrl.replace(/"/g, '&quot;');
+        return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    });
     escaped = escaped.replace(/(#[\w-]+)/g, '<span class="tag">$1</span>');
     escaped = escaped.replace(/(@[\w-]+)/g, '<span class="mention">$1</span>');
 

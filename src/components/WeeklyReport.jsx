@@ -11,7 +11,6 @@ export default function WeeklyReport({ tasks }) {
     const completedThisWeek = tasks.filter(t => t.completed && new Date(t.createdAt) >= weekAgo);
     const createdThisWeek = tasks.filter(t => new Date(t.createdAt) >= weekAgo);
     const overdue = tasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate + 'T00:00:00') < now);
-    const totalEst = createdThisWeek.reduce((s, t) => s + (t.estimatedMinutes || 0), 0);
     const completedEst = completedThisWeek.reduce((s, t) => s + (t.estimatedMinutes || 0), 0);
     const catBreakdown = categories.map(cat => ({
         name: cat.name, color: cat.color,
