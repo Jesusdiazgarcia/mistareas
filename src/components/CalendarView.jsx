@@ -38,16 +38,16 @@ export default function CalendarView({ tasks, onSetDueDate }) {
 
     return (
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius-xl)] p-5 animate-[fadeIn_0.2s_ease]"
-            style={{boxShadow: 'var(--shadow-md)'}}>
+            style={{boxShadow: 'var(--shadow-sm)'}}>
             <div className="flex justify-between items-center mb-5">
-                <button onClick={prev} className="w-10 h-10 rounded-[var(--radius)] bg-[var(--hover)] text-[var(--text)] flex items-center justify-center active:scale-90 transition-all duration-200 hover:bg-[var(--border)]">
+                <button onClick={prev} className="w-10 h-10 rounded-[var(--radius)] bg-[var(--hover)] text-[var(--text)] flex items-center justify-center active:scale-90 transition-all duration-200 hover:bg-[var(--border)] shadow-xs">
                     <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
                 <div className="text-center">
-                    <h3 className="text-[17px] font-extrabold text-[var(--text)]">{monthNames[calendarData.month]} {calendarData.year}</h3>
+                    <h3 className="text-[17px] font-bold text-[var(--text)]">{monthNames[calendarData.month]} {calendarData.year}</h3>
                     {overdueTasks > 0 && <p className="text-[11px] text-[var(--danger)] font-bold mt-0.5">{overdueTasks} vencida{overdueTasks > 1 ? 's' : ''}</p>}
                 </div>
-                <button onClick={next} className="w-10 h-10 rounded-[var(--radius)] bg-[var(--hover)] text-[var(--text)] flex items-center justify-center active:scale-90 transition-all duration-200 hover:bg-[var(--border)]">
+                <button onClick={next} className="w-10 h-10 rounded-[var(--radius)] bg-[var(--hover)] text-[var(--text)] flex items-center justify-center active:scale-90 transition-all duration-200 hover:bg-[var(--border)] shadow-xs">
                     <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
             </div>
@@ -62,14 +62,14 @@ export default function CalendarView({ tasks, onSetDueDate }) {
                 {calendarData.days.map((d, i) => (
                     <button key={i} onClick={() => d.dateStr && onSetDueDate(d.dateStr)}
                         disabled={!d.dateStr}
-                        className={`aspect-square flex flex-col items-center justify-center rounded-[12px] min-h-[44px] transition-all duration-200 ${d.otherMonth ? 'opacity-20' : 'active:scale-90'} ${d.isToday ? 'bg-gradient-to-br from-[#4c6ef5] to-[#7c3aed] text-white font-bold shadow-md' : 'text-[var(--text)] hover:bg-[var(--hover)]'}`}
-                        style={d.isToday ? {boxShadow: '0 2px 8px rgba(76,110,245,0.3)'} : {}}>
+                        className={`aspect-square flex flex-col items-center justify-center rounded-[var(--radius-lg)] min-h-[44px] transition-all duration-200 ${d.otherMonth ? 'opacity-20' : 'active:scale-90'} ${d.isToday ? 'bg-[var(--accent)] text-white font-bold shadow-xs' : 'text-[var(--text)] hover:bg-[var(--hover)]'}`}
+                        style={d.isToday ? {boxShadow: 'var(--shadow-xs)'} : {}}>
                         <span className="text-[13px] font-medium">{d.day}</span>
                         {d.tasks.length > 0 && (
                             <div className="flex gap-px mt-0.5">
                                 {d.tasks.slice(0, 3).map((t, j) => {
                                     const cat = categories.find(c => c.id === (t.category || 'none'));
-                                    return <div key={j} className="w-1.5 h-1.5 rounded-full" style={{ background: d.isToday ? 'white' : (cat ? cat.color : 'var(--text-muted)') }} />;
+                                    return <div key={j} className="w-1.5 h-1.5 rounded-full shadow-xs" style={{ background: d.isToday ? 'white' : (cat ? cat.color : 'var(--text-muted)') }} />;
                                 })}
                             </div>
                         )}

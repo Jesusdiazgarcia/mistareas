@@ -2,3 +2,12 @@ node_modules/
 dist/
 .env
 *.local
+
+# logs y temporales del workspace
+*.log
+*.bak.*
+*.html
+server/
+start-vite.sh
+freestyle-uv-installer.sh
+bun.lock

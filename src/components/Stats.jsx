@@ -32,29 +32,29 @@ export default function Stats({ tasks }) {
                     { v: pending, l: 'Pendientes', c: 'var(--warning)' },
                     { v: recurring, l: 'Recurrentes', c: 'var(--accent)' }
                 ].map(s => (
-                    <div key={s.l} className="bg-[var(--hover)] rounded-[var(--radius)] p-4 text-center border border-[var(--border)]">
-                        <div className="text-[26px] font-extrabold leading-none" style={{color: s.c}}>{s.v}</div>
-                        <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-2 font-bold">{s.l}</div>
+                    <div key={s.l} className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-4 text-center border border-[var(--border)]">
+                        <div className="text-[24px] font-bold leading-none" style={{color: s.c}}>{s.v}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-2 font-semibold">{s.l}</div>
                     </div>
                 ))}
             </div>
 
             {tasksWithTime.length > 0 && (
                 <div className="mt-4">
-                    <h3 className="text-[14px] font-bold text-[var(--text)] mb-3">Tiempo estimado vs real</h3>
-                    <div className="bg-[var(--hover)] rounded-[var(--radius)] p-4 border border-[var(--border)]">
+                    <h3 className="text-[14px] font-semibold text-[var(--text)] mb-3">Tiempo estimado vs real</h3>
+                                            <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-4 border border-[var(--border)]">
                         <div className="grid grid-cols-3 gap-3 text-center mb-3">
                             <div>
-                                <div className="text-[18px] font-extrabold text-[var(--accent)]">{formatMinutes(totalEstimated)}</div>
-                                <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Estimado</div>
+                                <div className="text-[17px] font-bold text-[var(--accent)]">{formatMinutes(totalEstimated)}</div>
+                                <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Estimado</div>
                             </div>
                             <div>
-                                <div className="text-[18px] font-extrabold text-[var(--success)]">{formatMinutes(totalActual)}</div>
-                                <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Real</div>
+                                <div className="text-[17px] font-bold text-[var(--success)]">{formatMinutes(totalActual)}</div>
+                                <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Real</div>
                             </div>
                             <div>
-                                <div className="text-[18px] font-extrabold" style={{color: avgAccuracy >= 80 ? 'var(--success)' : avgAccuracy >= 50 ? 'var(--warning)' : 'var(--danger)'}}>{avgAccuracy}%</div>
-                                <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Precisión</div>
+                                <div className="text-[17px] font-bold" style={{color: avgAccuracy >= 80 ? 'var(--success)' : avgAccuracy >= 50 ? 'var(--warning)' : 'var(--danger)'}}>{avgAccuracy}%</div>
+                                <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Precisión</div>
                             </div>
                         </div>
                         {totalEstimated > 0 && (
@@ -74,11 +74,11 @@ export default function Stats({ tasks }) {
 
             {categoryStats.length > 0 && (
                 <div className="mt-4">
-                    <h3 className="text-[14px] font-bold text-[var(--text)] mb-3">Por Categoría</h3>
+                    <h3 className="text-[14px] font-semibold text-[var(--text)] mb-3">Por Categoría</h3>
                     {categoryStats.map(c => (
                         <div key={c.name} className="flex items-center gap-2.5 mb-2.5">
                             <span className="text-xs text-[var(--text-muted)] w-16 text-right shrink-0 truncate font-semibold">{c.name}</span>
-                            <div className="flex-1 h-3 bg-[var(--hover)] rounded-full overflow-hidden border border-[var(--border)]">
+                            <div className="flex-1 h-3 bg-[var(--panel)] rounded-full overflow-hidden border border-[var(--border)]">
                                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(c.count / maxCat) * 100}%`, background: c.color }} />
                             </div>
                             <span className="text-xs font-bold w-8 shrink-0">{c.count}</span>
@@ -88,11 +88,11 @@ export default function Stats({ tasks }) {
             )}
             {priorityStats.length > 0 && (
                 <div className="mt-5">
-                    <h3 className="text-[14px] font-bold text-[var(--text)] mb-3">Por Prioridad</h3>
+                    <h3 className="text-[14px] font-semibold text-[var(--text)] mb-3">Por Prioridad</h3>
                     {priorityStats.map(p => (
                         <div key={p.name} className="flex items-center gap-2.5 mb-2.5">
                             <span className="text-xs text-[var(--text-muted)] w-16 text-right shrink-0 truncate font-semibold">{p.name}</span>
-                            <div className="flex-1 h-3 bg-[var(--hover)] rounded-full overflow-hidden border border-[var(--border)]">
+                            <div className="flex-1 h-3 bg-[var(--panel)] rounded-full overflow-hidden border border-[var(--border)]">
                                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(p.count / maxPri) * 100}%`, background: p.color }} />
                             </div>
                             <span className="text-xs font-bold w-8 shrink-0">{p.count}</span>

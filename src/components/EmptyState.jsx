@@ -9,11 +9,11 @@ export default function EmptyState({ filter }) {
     const msg = m[filter] || m.all;
     return (
         <div className="text-center py-16 px-6 animate-[fadeIn_0.3s_ease]">
-            <div className="w-24 h-24 rounded-[var(--radius-xl)] bg-gradient-to-br from-[var(--hover)] to-[var(--accent-light)] flex items-center justify-center mx-auto mb-5 shadow-sm">
-                <span className="text-4xl">{msg.i}</span>
+            <div className="w-22 h-22 rounded-[var(--radius-lg)] bg-[var(--panel)] flex items-center justify-center mx-auto mb-4 shadow-xs">
+                <span className="text-3xl">{msg.i}</span>
             </div>
-            <p className="text-base font-bold text-[var(--text)] mb-2">{msg.t}</p>
-            <span className="text-sm text-[var(--text-muted)] leading-relaxed">{msg.s}</span>
+            <p className="text-[17px] font-semibold text-[var(--text)] mb-2">{msg.t}</p>
+            <span className="text-[14px] text-[var(--text-muted)] leading-relaxed">{msg.s}</span>
         </div>
     );
 }
