@@ -11,7 +11,6 @@ export default function WeeklyReport({ tasks }) {
     const completedThisWeek = tasks.filter(t => t.completed && new Date(t.createdAt) >= weekAgo);
     const createdThisWeek = tasks.filter(t => new Date(t.createdAt) >= weekAgo);
     const overdue = tasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate + 'T00:00:00') < now);
-    const totalEst = createdThisWeek.reduce((s, t) => s + (t.estimatedMinutes || 0), 0);
     const completedEst = completedThisWeek.reduce((s, t) => s + (t.estimatedMinutes || 0), 0);
     const catBreakdown = categories.map(cat => ({
         name: cat.name, color: cat.color,
@@ -30,41 +29,41 @@ export default function WeeklyReport({ tasks }) {
 
     return (
         <>
-                            <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-3.5 text-center border border-[var(--border)]">
-                    <div className="text-[20px] font-bold text-[var(--success)]">{completedThisWeek.length}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Completadas</div>
+            <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="border-t border-[var(--border)] pt-3">
+                    <div className="brand-type figure text-[24px] leading-none text-[var(--success)]">{completedThisWeek.length}</div>
+                    <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--text-muted)] mt-1.5">Completadas</div>
                 </div>
-                <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-3.5 text-center border border-[var(--border)]">
-                    <div className="text-[20px] font-bold text-[var(--accent)]">{createdThisWeek.length}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Creadas</div>
+                <div className="border-t border-[var(--border)] pt-3">
+                    <div className="brand-type figure text-[24px] leading-none text-[var(--accent)]">{createdThisWeek.length}</div>
+                    <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--text-muted)] mt-1.5">Creadas</div>
                 </div>
-                <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-3.5 text-center border border-[var(--border)]">
-                    <div className="text-[20px] font-bold" style={{color: overdue.length > 0 ? 'var(--danger)' : 'var(--success)'}}>{overdue.length}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Vencidas</div>
+                <div className="border-t border-[var(--border)] pt-3">
+                    <div className="brand-type figure text-[24px] leading-none" style={{color: overdue.length > 0 ? 'var(--danger)' : 'var(--success)'}}>{overdue.length}</div>
+                    <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--text-muted)] mt-1.5">Vencidas</div>
                 </div>
             </div>
-            <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-4 mb-4 border border-[var(--border)]">
-                <div className="text-sm text-[var(--text-muted)] font-semibold mb-2">Tasa de completado</div>
-                <div className="h-2.5 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${rate}%` }} /></div>
-                <div className="text-[22px] font-bold text-[var(--accent)] mt-2">{rate}%</div>
+            <div className="border-t border-[var(--border)] pt-4 mb-6">
+                <div className="kicker mb-3">Tasa de completado</div>
+                <div className="h-1 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-[var(--accent-fill)] rounded-full transition-all duration-500" style={{ width: `${rate}%` }} /></div>
+                <div className="brand-type figure text-[26px] text-[var(--accent)] mt-2">{rate}%</div>
             </div>
 
             {tasksWithTime.length > 0 && (
-                <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-4 mb-4 border border-[var(--border)]">
-                    <div className="text-sm text-[var(--text-muted)] font-semibold mb-2">Tiempo esta semana</div>
+                <div className="border-t border-[var(--border)] pt-4 mb-6">
+                    <div className="kicker mb-3">Tiempo esta semana</div>
                     <div className="grid grid-cols-3 gap-3 text-center">
                         <div>
-                            <div className="text-[15px] font-bold text-[var(--accent)]">{formatMinutes(completedEst)}</div>
-                            <div className="text-[10px] text-[var(--text-muted)] font-semibold">Estimado</div>
+                            <div className="brand-type figure text-[18px] text-[var(--accent)]">{formatMinutes(completedEst)}</div>
+                            <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] mt-1">Estimado</div>
                         </div>
                         <div>
-                            <div className="text-[15px] font-bold text-[var(--success)]">{formatMinutes(totalActual)}</div>
-                            <div className="text-[10px] text-[var(--text-muted)] font-semibold">Real</div>
+                            <div className="brand-type figure text-[18px] text-[var(--success)]">{formatMinutes(totalActual)}</div>
+                            <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] mt-1">Real</div>
                         </div>
                         <div>
-                            <div className="text-[15px] font-bold" style={{color: avgAccuracy >= 80 ? 'var(--success)' : 'var(--warning)'}}>{avgAccuracy}%</div>
-                            <div className="text-[10px] text-[var(--text-muted)] font-semibold">Precisión</div>
+                            <div className="brand-type figure text-[18px]" style={{color: avgAccuracy >= 80 ? 'var(--success)' : 'var(--warning)'}}>{avgAccuracy}%</div>
+                            <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] mt-1">Precisión</div>
                         </div>
                     </div>
                 </div>
@@ -72,25 +71,25 @@ export default function WeeklyReport({ tasks }) {
 
             {catBreakdown.length > 0 && (
                 <div className="mt-4">
-                    <h3 className="text-[14px] font-bold text-[var(--text)] mb-3">Por Categoría (esta semana)</h3>
+                    <h3 className="kicker mb-3">Por categoría · esta semana</h3>
                     {catBreakdown.map(c => (
                         <div key={c.name} className="flex items-center gap-2.5 mb-2.5">
-                            <span className="text-xs text-[var(--text-muted)] w-16 text-right shrink-0 truncate font-semibold">{c.name}</span>
-                            <div className="flex-1 h-3 bg-[var(--panel)] rounded-full overflow-hidden border border-[var(--border)]"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${(c.completed / maxCat) * 100}%`, background: c.color }} /></div>
-                            <span className="text-xs font-semibold w-10 shrink-0">{c.completed}/{c.created}</span>
+                            <span className="text-[11px] text-[var(--text-muted)] w-16 text-right shrink-0 truncate">{c.name}</span>
+                            <div className="flex-1 h-1 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${(c.completed / maxCat) * 100}%`, background: c.color }} /></div>
+                            <span className="figure text-[11px] w-10 shrink-0 text-[var(--text-secondary)]">{c.completed}/{c.created}</span>
                         </div>
                     ))}
                 </div>
             )}
             {overdue.length > 0 && (
                 <div className="mt-4">
-                    <h3 className="text-[14px] font-bold text-[var(--danger)] mb-2">Tareas vencidas</h3>
+                    <h3 className="text-[9.5px] uppercase tracking-[0.16em] text-[var(--danger)] mb-3">Tareas vencidas</h3>
                     {overdue.slice(0, 5).map(t => {
                         const di = formatDate(t.dueDate);
                         return (
-                            <div key={t.id} className="flex items-center gap-2.5 p-3 bg-[var(--panel)] rounded-[var(--radius-lg)] mb-2 border border-[var(--border)]">
-                                <span className="flex-1 text-sm truncate font-medium">{escapeHtml(t.text)}</span>
-                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-[var(--radius)] bg-[var(--danger)] text-white shrink-0 shadow-xs">{di?.label}</span>
+                            <div key={t.id} className="flex items-center gap-3 py-2.5 border-b border-[var(--border)] last:border-b-0">
+                                <span className="flex-1 text-[12.5px] truncate text-[var(--text-secondary)]">{escapeHtml(t.text)}</span>
+                                <span className="text-[10px] uppercase tracking-[0.06em] text-[var(--danger)] shrink-0">{di?.label}</span>
                             </div>
                         );
                     })}

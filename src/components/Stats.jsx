@@ -25,47 +25,47 @@ export default function Stats({ tasks }) {
 
     return (
         <>
-            <div className="grid grid-cols-2 gap-2.5 mb-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5 mb-8">
                 {[
                     { v: total, l: 'Total', c: 'var(--accent)' },
                     { v: completed, l: 'Completadas', c: 'var(--success)' },
                     { v: pending, l: 'Pendientes', c: 'var(--warning)' },
                     { v: recurring, l: 'Recurrentes', c: 'var(--accent)' }
                 ].map(s => (
-                    <div key={s.l} className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-4 text-center border border-[var(--border)]">
-                        <div className="text-[24px] font-bold leading-none" style={{color: s.c}}>{s.v}</div>
-                        <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-2 font-semibold">{s.l}</div>
+                    <div key={s.l} className="border-t border-[var(--border)] pt-3">
+                        <div className="brand-type figure text-[28px] leading-none" style={{color: s.c}}>{s.v}</div>
+                        <div className="text-[9.5px] uppercase tracking-[0.14em] text-[var(--text-muted)] mt-2">{s.l}</div>
                     </div>
                 ))}
             </div>
 
             {tasksWithTime.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-[14px] font-semibold text-[var(--text)] mb-3">Tiempo estimado vs real</h3>
-                                            <div className="bg-[var(--panel)] rounded-[var(--radius-lg)] p-4 border border-[var(--border)]">
-                        <div className="grid grid-cols-3 gap-3 text-center mb-3">
+                <div className="mt-8">
+                    <h3 className="kicker mb-3">Tiempo estimado vs real</h3>
+                    <div className="border-t border-[var(--border)] pt-4">
+                        <div className="grid grid-cols-3 gap-3 text-center mb-4">
                             <div>
-                                <div className="text-[17px] font-bold text-[var(--accent)]">{formatMinutes(totalEstimated)}</div>
-                                <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Estimado</div>
+                                <div className="brand-type figure text-[19px] text-[var(--accent)]">{formatMinutes(totalEstimated)}</div>
+                                <div className="text-[9.5px] uppercase tracking-[0.12em] text-[var(--text-muted)] mt-1">Estimado</div>
                             </div>
                             <div>
-                                <div className="text-[17px] font-bold text-[var(--success)]">{formatMinutes(totalActual)}</div>
-                                <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Real</div>
+                                <div className="brand-type figure text-[19px] text-[var(--success)]">{formatMinutes(totalActual)}</div>
+                                <div className="text-[9.5px] uppercase tracking-[0.12em] text-[var(--text-muted)] mt-1">Real</div>
                             </div>
                             <div>
-                                <div className="text-[17px] font-bold" style={{color: avgAccuracy >= 80 ? 'var(--success)' : avgAccuracy >= 50 ? 'var(--warning)' : 'var(--danger)'}}>{avgAccuracy}%</div>
-                                <div className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Precisión</div>
+                                <div className="brand-type figure text-[19px]" style={{color: avgAccuracy >= 80 ? 'var(--success)' : avgAccuracy >= 50 ? 'var(--warning)' : 'var(--danger)'}}>{avgAccuracy}%</div>
+                                <div className="text-[9.5px] uppercase tracking-[0.12em] text-[var(--text-muted)] mt-1">Precisión</div>
                             </div>
                         </div>
                         {totalEstimated > 0 && (
-                            <div className="h-3 bg-[var(--border)] rounded-full overflow-hidden">
+                            <div className="h-1 bg-[var(--border)] rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-500" style={{
                                     width: `${Math.min((totalActual / totalEstimated) * 100, 100)}%`,
                                     background: totalActual <= totalEstimated ? 'var(--success)' : 'var(--danger)'
                                 }} />
                             </div>
                         )}
-                        <p className="text-[11px] text-[var(--text-muted)] mt-2 text-center">
+                        <p className="text-[10.5px] text-[var(--text-muted)] mt-3 text-center tracking-[0.02em]">
                             {tasksWithTime.length} tarea{tasksWithTime.length !== 1 ? 's' : ''} con tiempo registrado
                         </p>
                     </div>
@@ -73,29 +73,29 @@ export default function Stats({ tasks }) {
             )}
 
             {categoryStats.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-[14px] font-semibold text-[var(--text)] mb-3">Por Categoría</h3>
+                <div className="mt-8">
+                    <h3 className="kicker mb-3">Por categoría</h3>
                     {categoryStats.map(c => (
                         <div key={c.name} className="flex items-center gap-2.5 mb-2.5">
-                            <span className="text-xs text-[var(--text-muted)] w-16 text-right shrink-0 truncate font-semibold">{c.name}</span>
-                            <div className="flex-1 h-3 bg-[var(--panel)] rounded-full overflow-hidden border border-[var(--border)]">
+                            <span className="text-[11px] text-[var(--text-muted)] w-16 text-right shrink-0 truncate">{c.name}</span>
+                            <div className="flex-1 h-1 bg-[var(--border)] rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(c.count / maxCat) * 100}%`, background: c.color }} />
                             </div>
-                            <span className="text-xs font-bold w-8 shrink-0">{c.count}</span>
+                            <span className="figure text-[11px] w-8 shrink-0 text-[var(--text-secondary)]">{c.count}</span>
                         </div>
                     ))}
                 </div>
             )}
             {priorityStats.length > 0 && (
-                <div className="mt-5">
-                    <h3 className="text-[14px] font-semibold text-[var(--text)] mb-3">Por Prioridad</h3>
+                <div className="mt-8">
+                    <h3 className="kicker mb-3">Por prioridad</h3>
                     {priorityStats.map(p => (
                         <div key={p.name} className="flex items-center gap-2.5 mb-2.5">
-                            <span className="text-xs text-[var(--text-muted)] w-16 text-right shrink-0 truncate font-semibold">{p.name}</span>
-                            <div className="flex-1 h-3 bg-[var(--panel)] rounded-full overflow-hidden border border-[var(--border)]">
+                            <span className="text-[11px] text-[var(--text-muted)] w-16 text-right shrink-0 truncate">{p.name}</span>
+                            <div className="flex-1 h-1 bg-[var(--border)] rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(p.count / maxPri) * 100}%`, background: p.color }} />
                             </div>
-                            <span className="text-xs font-bold w-8 shrink-0">{p.count}</span>
+                            <span className="figure text-[11px] w-8 shrink-0 text-[var(--text-secondary)]">{p.count}</span>
                         </div>
                     ))}
                 </div>

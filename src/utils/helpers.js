@@ -1,17 +1,17 @@
 export const categories = [
-    { id: 'none', name: 'Sin categoría', color: '#94a3b8' },
-    { id: 'personal', name: 'Personal', color: '#6366f1' },
-    { id: 'work', name: 'Trabajo', color: '#f59e0b' },
-    { id: 'shopping', name: 'Compras', color: '#10b981' },
-    { id: 'health', name: 'Salud', color: '#ef4444' },
-    { id: 'ideas', name: 'Ideas', color: '#8b5cf6' }
+    { id: 'none', name: 'Sin categoría', color: '#8a8f96' },
+    { id: 'personal', name: 'Personal', color: '#7d9ab8' },
+    { id: 'work', name: 'Trabajo', color: '#b08c62' },
+    { id: 'shopping', name: 'Compras', color: '#7c9c86' },
+    { id: 'health', name: 'Salud', color: '#b4796f' },
+    { id: 'ideas', name: 'Ideas', color: '#8d85a6' }
 ];
 
 export const priorities = [
-    { id: 'none', name: 'Sin prioridad', color: '#94a3b8' },
-    { id: 'low', name: 'Baja', color: '#10b981' },
-    { id: 'medium', name: 'Media', color: '#f59e0b' },
-    { id: 'high', name: 'Alta', color: '#ef4444' }
+    { id: 'none', name: 'Sin prioridad', color: '#8a8f96' },
+    { id: 'low', name: 'Baja', color: '#7c9c86' },
+    { id: 'medium', name: 'Media', color: '#b08c62' },
+    { id: 'high', name: 'Alta', color: '#b4796f' }
 ];
 
 export const repeats = {
@@ -67,6 +67,12 @@ export function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/** Número de edición del día (día del año). */
+export function editionNumber() {
+    const now = new Date();
+    return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
 }
 
 export function generateId(tasks) {

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { categories, priorities, repeats, formatDate, formatMinutes } from '../utils/helpers';
 import { parseMarkdown } from '../utils/markdown';
+import MenuPanel, { MenuDivider } from './MenuPanel';
 import { generateTaskICS, downloadICS } from '../utils/calendarExport';
 
 function calcActualMinutes(startedAt, completedAt) {
@@ -8,7 +9,9 @@ function calcActualMinutes(startedAt, completedAt) {
     return Math.round((new Date(completedAt) - new Date(startedAt)) / 60000);
 }
 
-export default function TaskItem({ task, selected, onToggle, onDelete, onTogglePin, onToggleSubtask, onAddSubtask, onToggleSelect, onEdit, collapsed, onToggleCollapse, onSaveNotes, onToggleInProgress, onDragStart, onDragEnd, onDragOver, onDrop }) {
+const ACTION = 'w-full px-3 py-2 text-left text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-sm)] transition-colors duration-150';
+
+export default function TaskItem({ task, index, selected, onToggle, onDelete, onTogglePin, onToggleSubtask, onAddSubtask, onToggleSelect, onEdit, collapsed, onToggleCollapse, onSaveNotes, onToggleInProgress, onDragStart, onDragEnd, onDragOver, onDrop }) {
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(task.text);
     const [showNotes, setShowNotes] = useState(false);
@@ -18,10 +21,11 @@ export default function TaskItem({ task, selected, onToggle, onDelete, onToggleP
     const [showSubtaskInput, setShowSubtaskInput] = useState(false);
     const editRef = useRef(null);
 
-    const category = categories.find(c => c.id === (task.category || 'none'));
-    const priority = priorities.find(p => p.id === (task.priority || 'none'));
+    const category = categories.find(item => item.id === (task.category || 'none'));
+    const priority = priorities.find(item => item.id === (task.priority || 'none'));
     const dateInfo = formatDate(task.dueDate);
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+    const actualMinutes = calcActualMinutes(task.startedAt, task.completedAt);
 
     const handleDoubleClick = () => {
         setEditing(true); setEditText(task.text);
@@ -37,180 +41,140 @@ export default function TaskItem({ task, selected, onToggle, onDelete, onToggleP
         if (subtaskInput.trim()) { onAddSubtask(task.id, subtaskInput.trim()); setSubtaskInput(''); }
     };
     const handleAddToCalendar = () => {
-        const ics = generateTaskICS(task);
         const safeName = task.text.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]/g, '_').substring(0, 30);
-        downloadICS(`${safeName}.ics`, ics);
+        downloadICS(`${safeName}.ics`, generateTaskICS(task));
         setShowActions(false);
     };
 
-    const borderColor = task.pinned ? '#f59e0b' : (category && category.id !== 'none' ? category.color : 'transparent');
-    const actualMinutes = calcActualMinutes(task.startedAt, task.completedAt);
-
     return (
-        <li className={`group relative flex items-start gap-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius-lg)] mb-2.5 transition-all duration-200 ${selected ? 'border-[var(--accent)] ring-1 ring-[var(--accent-soft)]' : ''} ${task.completed ? 'opacity-55' : ''} ${showSubtaskInput ? 'ring-1 ring-[var(--accent-soft)]' : ''}`}
-            style={{
-                borderLeftWidth: '4px',
-                borderLeftColor: borderColor,
-                boxShadow: selected ? 'var(--shadow-sm)' : 'var(--shadow-xs)'
-            }}
-            draggable onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop}>
+        <li className={`group relative flex items-start gap-3 py-3.5 border-b border-[var(--border)] last:border-b-0 transition-colors duration-150 ${selected ? 'bg-[var(--accent-soft)]' : ''}`}
+            draggable onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop}
+            style={task.pinned ? { boxShadow: 'inset 1px 0 0 var(--accent)' } : undefined}>
 
-            <button onClick={() => onToggle(task.id)} aria-checked={task.completed} role="checkbox"
-                className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 mt-[3px] active:scale-[0.85] transition-all duration-200 ${task.completed ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--accent)] hover:bg-[var(--accent-light)]'}`}>
-                {task.completed && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6l2.5 2.5L9 4" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            <button onClick={() => onToggle(task.id)} role="checkbox" aria-checked={task.completed}
+                aria-label={task.completed ? `Marcar "${task.text}" como pendiente` : `Marcar "${task.text}" como completada`}
+                className={`relative after:absolute after:-inset-3 after:content-[''] w-[17px] h-[17px] rounded-full border flex items-center justify-center shrink-0 mt-[3px] active:scale-90 transition-all duration-150 ${task.completed ? 'bg-[var(--accent-fill)] border-[var(--accent-fill)]' : 'border-[var(--border-strong)] bg-transparent hover:border-[var(--accent)]'}`}>
+                {task.completed && <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3 6l2.5 2.5L9 4" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </button>
 
             <div className="flex-1 min-w-0">
                 {editing ? (
-                    <input ref={editRef} value={editText} onChange={e => setEditText(e.target.value)} onBlur={saveEdit} maxLength={500}
-                        onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') { setEditText(task.text); setEditing(false); } }}
-                        className="w-full px-3 py-2 rounded-[var(--radius-lg)] border-2 border-[var(--accent)] bg-[var(--card)] text-[var(--text)] text-[15px] outline-none transition-all duration-200"
-                        style={{boxShadow: '0 0 0 3px var(--accent-soft)'}} />
+                    <input ref={editRef} value={editText} onChange={event => setEditText(event.target.value)} onBlur={saveEdit} maxLength={500}
+                        onKeyDown={event => { if (event.key === 'Enter') saveEdit(); if (event.key === 'Escape') { setEditText(task.text); setEditing(false); } }}
+                        className="w-full px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-[var(--accent)] bg-[var(--input-bg)] text-[var(--text)] text-[14px] outline-none" />
                 ) : (
                     <span onDoubleClick={handleDoubleClick} title="Doble clic para editar"
-                        className={`block text-[15px] leading-[1.5] break-words cursor-default select-text ${task.completed ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text)] font-medium'}`}
+                        className={`block text-[13.5px] leading-[1.5] break-words cursor-default select-text ${task.completed ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text)]'}`}
                         dangerouslySetInnerHTML={{ __html: parseMarkdown(task.text) }} />
                 )}
 
-                <div className="flex flex-wrap gap-1.5 mt-2.5">
+                <div className="meta-row mt-1.5">
                     {task.inProgress && !task.completed && (
-                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-[3px] rounded-full bg-[var(--warning-soft)] text-[var(--warning)]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--warning)] animate-[pulse_2s_ease-in-out_infinite]" />
+                        <span className="accent flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-[var(--accent)] animate-[pulse_2s_ease-in-out_infinite]" />
                             En progreso
                         </span>
                     )}
-                    {category && category.id !== 'none' && (
-                        <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full text-white shadow-xs" style={{ background: category.color }}>{category.name}</span>
-                    )}
+                    {category && category.id !== 'none' && <span>{category.name}</span>}
                     {priority && priority.id !== 'none' && (
-                        <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full text-white shadow-xs" style={{ background: priority.color }}>{priority.name}</span>
+                        <span className={priority.id === 'high' ? 'accent' : ''}>{priority.name}</span>
                     )}
-                    {task.repeat && task.repeat !== 'none' && (
-                        <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">{repeats[task.repeat]}</span>
-                    )}
+                    {task.repeat && task.repeat !== 'none' && <span>{repeats[task.repeat]}</span>}
                     {dateInfo && (
-                        <span className={`text-[10px] font-bold px-2.5 py-[3px] rounded-full shadow-xs ${dateInfo.status === 'overdue' ? 'bg-[var(--danger)] text-white' : dateInfo.status === 'today' || dateInfo.status === 'tomorrow' ? 'bg-[var(--warning)] text-white' : 'bg-[var(--accent)] text-white'}`}>{dateInfo.label}</span>
+                        <span className={dateInfo.status === 'overdue' ? 'text-[var(--danger)]' : dateInfo.status === 'today' ? 'text-[var(--text)]' : ''}>{dateInfo.label}</span>
                     )}
-                    {task.estimatedMinutes > 0 && (
-                        <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">{formatMinutes(task.estimatedMinutes)}</span>
-                    )}
-                    {task.completed && actualMinutes > 0 && task.estimatedMinutes > 0 && (
-                        <span className={`text-[10px] font-bold px-2.5 py-[3px] rounded-full ${actualMinutes <= task.estimatedMinutes ? 'bg-[var(--success-soft)] text-[var(--success)]' : 'bg-[var(--danger-soft)] text-[var(--danger)]'}`}>
-                            {actualMinutes <= task.estimatedMinutes ? '✓' : '✗'} {formatMinutes(actualMinutes)} real
+                    {task.estimatedMinutes > 0 && <span className="figure">{formatMinutes(task.estimatedMinutes)}</span>}
+                    {task.completed && actualMinutes > 0 && (
+                        <span className={`figure ${task.estimatedMinutes && actualMinutes > task.estimatedMinutes ? 'text-[var(--danger)]' : 'text-[var(--success)]'}`}>
+                            {formatMinutes(actualMinutes)} real
                         </span>
-                    )}
-                    {task.completed && actualMinutes > 0 && !task.estimatedMinutes && (
-                        <span className="text-[10px] font-bold px-2.5 py-[3px] rounded-full bg-[var(--success-soft)] text-[var(--success)]">⏱ {formatMinutes(actualMinutes)} real</span>
                     )}
                 </div>
 
                 {task.notes && task.notes.trim() && !showNotes && !editing && (
                     <button onClick={() => setShowNotes(true)}
-                        className="text-[13px] text-[var(--text-muted)] mt-2.5 p-3 bg-[var(--panel)] rounded-[var(--radius-lg)] text-left w-full leading-snug line-clamp-2 border-l-[3px] border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] transition-all duration-200">
+                        className="mt-2 w-full border-l border-[var(--border-strong)] pl-2.5 py-0.5 text-left text-[11.5px] italic leading-snug text-[var(--text-muted)] line-clamp-2 hover:border-[var(--accent)] hover:text-[var(--text-secondary)] transition-colors duration-150">
                         {task.notes.length > 50 ? task.notes.substring(0, 50) + '...' : task.notes}
                     </button>
                 )}
                 {showNotes && (
-                    <div className="mt-2.5">
-                        <textarea value={notesText} onChange={e => setNotesText(e.target.value)} onBlur={handleNotesBlur} placeholder="Notas..."
-                            onKeyDown={e => { if (e.key === 'Escape') { handleNotesBlur(); setShowNotes(false); } }}
-                            className="w-full p-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--card)] text-[var(--text)] text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] resize-y min-h-[60px] transition-all duration-200" />
-                    </div>
+                    <textarea value={notesText} onChange={event => setNotesText(event.target.value)} onBlur={handleNotesBlur} placeholder="Notas..."
+                        onKeyDown={event => { if (event.key === 'Escape') { handleNotesBlur(); setShowNotes(false); } }}
+                        className="mt-2 w-full p-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text)] text-[12.5px] outline-none focus:border-[var(--accent)] resize-y min-h-[58px] transition-colors duration-150" />
                 )}
 
                 {hasSubtasks && !editing && (
                     <button onClick={() => onToggleCollapse(task.id)}
-                        className="flex items-center gap-1.5 mt-2.5 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors duration-200 py-0.5">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className={`transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`}><path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        <span className="font-semibold">{task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} subtareas</span>
+                        className="flex items-center gap-1.5 mt-2 text-[11px] tracking-[0.02em] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors duration-150">
+                        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" className={`transition-transform duration-150 ${collapsed ? '' : 'rotate-90'}`}><path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        <span>{task.subtasks.filter(sub => sub.completed).length}/{task.subtasks.length} subtareas</span>
                     </button>
                 )}
 
                 {hasSubtasks && !collapsed && !editing && (
-                    <div className="mt-2.5 pl-3.5 border-l-2 border-[var(--border)] space-y-1.5">
-                        {task.subtasks.map((sub, i) => (
-                            <div key={i} className="flex items-center gap-2.5 py-1">
-                                <button onClick={() => onToggleSubtask(task.id, i)}
-                                    className={`w-[18px] h-[18px] rounded-[var(--radius-sm)] border flex items-center justify-center shrink-0 active:scale-90 transition-all duration-200 ${sub.completed ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-[var(--border)] hover:border-[var(--accent)]'}`}>
-                                    {sub.completed && <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    <div className="mt-1.5 border-l border-[var(--border)] pl-3 space-y-1">
+                        {task.subtasks.map((sub, subIndex) => (
+                            <div key={subIndex} className="flex items-center gap-2.5 py-0.5">
+                                <button onClick={() => onToggleSubtask(task.id, subIndex)} role="checkbox" aria-checked={sub.completed} aria-label={sub.text}
+                                    className={`relative after:absolute after:-inset-2 after:content-[''] w-[13px] h-[13px] rounded-full border flex items-center justify-center shrink-0 transition-colors duration-150 ${sub.completed ? 'bg-[var(--accent-fill)] border-[var(--accent-fill)]' : 'border-[var(--border-strong)] hover:border-[var(--accent)]'}`}>
+                                    {sub.completed && <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="var(--on-accent)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                                 </button>
-                                <span className={`text-[13px] flex-1 ${sub.completed ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-secondary)]'}`}>{sub.text}</span>
+                                <span className={`text-[12px] flex-1 ${sub.completed ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-secondary)]'}`}>{sub.text}</span>
                             </div>
                         ))}
                     </div>
                 )}
 
                 {showSubtaskInput && !editing && (
-                    <div className="flex gap-2 mt-2.5">
-                        <input value={subtaskInput} onChange={e => setSubtaskInput(e.target.value)} placeholder="Subtarea..." autoFocus
-                            onKeyDown={e => { if (e.key === 'Enter' && subtaskInput.trim()) handleAddSubtask(); if (e.key === 'Escape') { setShowSubtaskInput(false); setSubtaskInput(''); } }}
+                    <div className="flex gap-2 mt-2">
+                        <input value={subtaskInput} onChange={event => setSubtaskInput(event.target.value)} placeholder="Subtarea..." autoFocus
+                            onKeyDown={event => { if (event.key === 'Enter' && subtaskInput.trim()) handleAddSubtask(); if (event.key === 'Escape') { setShowSubtaskInput(false); setSubtaskInput(''); } }}
                             onBlur={() => { if (!subtaskInput.trim()) setShowSubtaskInput(false); }}
-                            className="flex-1 px-3 py-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--card)] text-[var(--text)] text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-all duration-200" />
-                        <button onClick={handleAddSubtask} className="px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--accent)] text-white text-sm font-bold active:scale-95 transition-all duration-200 shadow-xs">OK</button>
+                            className="flex-1 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text)] text-[12.5px] outline-none focus:border-[var(--accent)] transition-colors duration-150" />
+                        <button onClick={handleAddSubtask}
+                            className="px-3 rounded-[var(--radius-sm)] border border-[var(--border)] text-[11px] tracking-[0.06em] uppercase text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-colors duration-150">OK</button>
                     </div>
                 )}
             </div>
 
-            <div className="flex items-center gap-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
-                                    <button onClick={() => onToggleSelect(task.id)} aria-label="Seleccionar"
-                    className={`w-7 h-7 rounded-[var(--radius)] flex items-center justify-center transition-all duration-200 ${selected ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-muted)] hover:bg-[var(--hover)]'}`}>
-                    {selected
-                        ? <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        : <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.2"/></svg>}
-                </button>
-                                    <button onClick={() => setShowActions(!showActions)}
-                    className="w-7 h-7 rounded-[var(--radius)] flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--hover)] transition-all duration-200">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="3" r="1" fill="currentColor"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="11" r="1" fill="currentColor"/></svg>
-                </button>
+            <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+                <span className="folio">{String((index ?? 0) + 1).padStart(2, '0')}</span>
+                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+                    <button onClick={() => onToggleSelect(task.id)} aria-label="Seleccionar"
+                        className={`relative after:absolute after:-inset-2 after:content-[''] w-6 h-6 rounded-[var(--radius-sm)] flex items-center justify-center transition-colors duration-150 ${selected ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}>
+                        {selected
+                            ? <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            : <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="1.5" width="9" height="9" rx="2" stroke="currentColor" strokeWidth="1.1" /></svg>}
+                    </button>
+                    <button onClick={() => setShowActions(!showActions)} aria-label="Acciones de la tarea" aria-expanded={showActions} aria-haspopup="menu"
+                        className="relative after:absolute after:-inset-2 after:content-[''] w-6 h-6 rounded-[var(--radius-sm)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors duration-150">
+                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="3" r="0.9" fill="currentColor" /><circle cx="7" cy="7" r="0.9" fill="currentColor" /><circle cx="7" cy="11" r="0.9" fill="currentColor" /></svg>
+                    </button>
+                </div>
             </div>
 
-                            {showSubtaskInput && !editing && (
-                    <div className="flex gap-2 mt-2.5">
-                        <input value={subtaskInput} onChange={e => setSubtaskInput(e.target.value)} placeholder="Subtarea..." autoFocus
-                            onKeyDown={e => { if (e.key === 'Enter' && subtaskInput.trim()) handleAddSubtask(); if (e.key === 'Escape') { setShowSubtaskInput(false); setSubtaskInput(''); } }}
-                            onBlur={() => { if (!subtaskInput.trim()) setShowSubtaskInput(false); }}
-                            className="flex-1 px-3 py-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--card)] text-[var(--text)] text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-all duration-200" />
-                        <button onClick={handleAddSubtask} className="px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--accent)] text-white text-sm font-bold active:scale-95 transition-all duration-200 shadow-xs">OK</button>
+            {showActions && (
+                <MenuPanel onClose={() => setShowActions(false)} overlayClassName="z-10" panelClassName="z-20"
+                    className="right-1 top-10 w-[180px]" shadow="var(--shadow-sm)">
+                    <div className="p-1">
+                        {!task.completed && (
+                            <button onClick={() => { onToggleInProgress(task.id); setShowActions(false); }} className={ACTION}>
+                                {task.inProgress ? 'Pausar' : 'Iniciar'}
+                            </button>
+                        )}
+                        <button onClick={() => { onTogglePin(task.id); setShowActions(false); }} className={ACTION}>
+                            {task.pinned ? 'Desfijar' : 'Fijar'}
+                        </button>
+                        <button onClick={() => { setShowSubtaskInput(!showSubtaskInput); setShowActions(false); }} className={ACTION}>Subtarea</button>
+                        <button onClick={() => { setShowNotes(!showNotes); setShowActions(false); }} className={ACTION}>Notas</button>
+                        <button onClick={handleAddToCalendar} className={ACTION}>Añadir al calendario</button>
                     </div>
-                )}
-                {showActions && (
-                    <>
-                        <div className="fixed inset-0 z-10" onClick={() => setShowActions(false)} />
-                        <div className="absolute right-2 top-12 bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius-lg)] z-20 overflow-hidden min-w-[180px] animate-[scaleIn_0.15s_ease]"
-                            style={{boxShadow: 'var(--shadow-sm)'}} onMouseLeave={() => setShowActions(false)}>
-                        <div className="p-1.5">
-                            {!task.completed && (
-                                <button onClick={() => { onToggleInProgress(task.id); setShowActions(false); }}
-                                    className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--hover)] rounded-[var(--radius-lg)] flex items-center gap-3 transition-all duration-150 ${task.inProgress ? 'text-[var(--warning)] font-bold' : 'text-[var(--text)]'}`}>
-                                    <span className="text-base w-5 text-center">{task.inProgress ? '⏸' : '▶'}</span> {task.inProgress ? 'Pausar' : 'Iniciar'}
-                                </button>
-                            )}
-                            <button onClick={() => { onTogglePin(task.id); setShowActions(false); }}
-                                className="w-full px-4 py-2.5 text-left text-sm text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-lg)] flex items-center gap-3 transition-all duration-150">
-                                <span className="text-base w-5 text-center">{task.pinned ? '☆' : '★'}</span> {task.pinned ? 'Desfijar' : 'Fijar'}
-                            </button>
-                            <button onClick={() => { setShowSubtaskInput(!showSubtaskInput); setShowActions(false); }}
-                                className="w-full px-4 py-2.5 text-left text-sm text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-lg)] flex items-center gap-3 transition-all duration-150">
-                                <span className="text-base w-5 text-center">☑</span> Subtarea
-                            </button>
-                            <button onClick={() => { setShowNotes(!showNotes); setShowActions(false); }}
-                                className="w-full px-4 py-2.5 text-left text-sm text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-lg)] flex items-center gap-3 transition-all duration-150">
-                                <span className="text-base w-5 text-center">📝</span> Notas
-                            </button>
-                            <button onClick={handleAddToCalendar}
-                                className="w-full px-4 py-2.5 text-left text-sm text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-lg)] flex items-center gap-3 transition-all duration-150">
-                                <span className="text-base w-5 text-center">📅</span> Agregar al calendario
-                            </button>
-                        </div>
-                        <div className="h-px bg-[var(--border)] mx-3" />
-                        <div className="p-1.5">
-                            <button onClick={() => { onDelete(task.id); setShowActions(false); }}
-                                className="w-full px-4 py-2.5 text-left text-sm text-[var(--danger)] hover:bg-[var(--danger-soft)] rounded-[var(--radius-lg)] flex items-center gap-3 transition-all duration-150">
-                                <span className="text-base w-5 text-center">🗑</span> Eliminar
-                            </button>
-                        </div>
+                    <MenuDivider />
+                    <div className="p-1">
+                        <button onClick={() => { onDelete(task.id); setShowActions(false); }}
+                            className={`${ACTION} text-[var(--danger)] hover:text-[var(--danger)]`}>Eliminar</button>
                     </div>
-                </>
+                </MenuPanel>
             )}
         </li>
     );

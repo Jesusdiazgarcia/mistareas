@@ -18,58 +18,60 @@ export default function CalendarView({ tasks, onSetDueDate }) {
         for (let i = startDay - 1; i >= 0; i--) days.push({ day: prevMonthLast - i, otherMonth: true, dateStr: null, isToday: false, tasks: [] });
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const d = new Date(year, month, day);
-            const dayTasks = tasks.filter(t => t.dueDate === dateStr);
-            days.push({ day, otherMonth: false, dateStr, isToday: d.getTime() === today.getTime(), tasks: dayTasks });
+            const current = new Date(year, month, day);
+            const dayTasks = tasks.filter(task => task.dueDate === dateStr);
+            days.push({ day, otherMonth: false, dateStr, isToday: current.getTime() === today.getTime(), tasks: dayTasks });
         }
         const remaining = 42 - days.length;
         for (let i = 1; i <= remaining; i++) days.push({ day: i, otherMonth: true, dateStr: null, isToday: false, tasks: [] });
         return { year, month, days };
     }, [date, tasks]);
 
-    const prev = () => { const d = new Date(date); d.setMonth(d.getMonth() - 1); setDate(d); };
-    const next = () => { const d = new Date(date); d.setMonth(d.getMonth() + 1); setDate(d); };
+    const prev = () => { const next = new Date(date); next.setMonth(next.getMonth() - 1); setDate(next); };
+    const next = () => { const following = new Date(date); following.setMonth(following.getMonth() + 1); setDate(following); };
 
-    const totalTasks = tasks.filter(t => t.dueDate && !t.completed).length;
-    const overdueTasks = tasks.filter(t => {
-        if (!t.dueDate || t.completed) return false;
-        return new Date(t.dueDate) < new Date(new Date().toDateString());
+    const totalTasks = tasks.filter(task => task.dueDate && !task.completed).length;
+    const overdueTasks = tasks.filter(task => {
+        if (!task.dueDate || task.completed) return false;
+        return new Date(task.dueDate) < new Date(new Date().toDateString());
     }).length;
+    const completedDated = tasks.filter(task => task.completed && task.dueDate).length;
+    const navButton = 'w-9 h-9 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-muted)] flex items-center justify-center active:scale-90 transition-colors duration-150 hover:text-[var(--text)] hover:border-[var(--border-strong)]';
 
     return (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius-xl)] p-5 animate-[fadeIn_0.2s_ease]"
-            style={{boxShadow: 'var(--shadow-sm)'}}>
+        <div className="border border-[var(--border)] rounded-[var(--radius-lg)] p-4 animate-[fadeIn_0.2s_ease]">
             <div className="flex justify-between items-center mb-5">
-                <button onClick={prev} className="w-10 h-10 rounded-[var(--radius)] bg-[var(--hover)] text-[var(--text)] flex items-center justify-center active:scale-90 transition-all duration-200 hover:bg-[var(--border)] shadow-xs">
-                    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <button onClick={prev} aria-label="Mes anterior" className={navButton}>
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
                 <div className="text-center">
-                    <h3 className="text-[17px] font-bold text-[var(--text)]">{monthNames[calendarData.month]} {calendarData.year}</h3>
-                    {overdueTasks > 0 && <p className="text-[11px] text-[var(--danger)] font-bold mt-0.5">{overdueTasks} vencida{overdueTasks > 1 ? 's' : ''}</p>}
+                    <h3 className="brand-type text-[19px] leading-none text-[var(--text)]">{monthNames[calendarData.month]} {calendarData.year}</h3>
+                    {overdueTasks > 0 && <p className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--danger)]">{overdueTasks} vencida{overdueTasks > 1 ? 's' : ''}</p>}
                 </div>
-                <button onClick={next} className="w-10 h-10 rounded-[var(--radius)] bg-[var(--hover)] text-[var(--text)] flex items-center justify-center active:scale-90 transition-all duration-200 hover:bg-[var(--border)] shadow-xs">
-                    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <button onClick={next} aria-label="Mes siguiente" className={navButton}>
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5 mb-2">
-                {['Lu','Ma','Mi','Ju','Vi','Sa','Do'].map(d => (
-                    <span key={d} className="text-center text-[10px] font-bold text-[var(--text-muted)] uppercase py-1.5 tracking-wider">{d}</span>
+            <div className="grid grid-cols-7 gap-1 mb-1.5">
+                {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map(day => (
+                    <span key={day} className="text-center text-[9px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)] py-1">{day}</span>
                 ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5">
-                {calendarData.days.map((d, i) => (
-                    <button key={i} onClick={() => d.dateStr && onSetDueDate(d.dateStr)}
-                        disabled={!d.dateStr}
-                        className={`aspect-square flex flex-col items-center justify-center rounded-[var(--radius-lg)] min-h-[44px] transition-all duration-200 ${d.otherMonth ? 'opacity-20' : 'active:scale-90'} ${d.isToday ? 'bg-[var(--accent)] text-white font-bold shadow-xs' : 'text-[var(--text)] hover:bg-[var(--hover)]'}`}
-                        style={d.isToday ? {boxShadow: 'var(--shadow-xs)'} : {}}>
-                        <span className="text-[13px] font-medium">{d.day}</span>
-                        {d.tasks.length > 0 && (
-                            <div className="flex gap-px mt-0.5">
-                                {d.tasks.slice(0, 3).map((t, j) => {
-                                    const cat = categories.find(c => c.id === (t.category || 'none'));
-                                    return <div key={j} className="w-1.5 h-1.5 rounded-full shadow-xs" style={{ background: d.isToday ? 'white' : (cat ? cat.color : 'var(--text-muted)') }} />;
+            <div className="grid grid-cols-7 gap-1">
+                {calendarData.days.map((day, index) => (
+                    <button key={index} onClick={() => day.dateStr && onSetDueDate(day.dateStr)}
+                        disabled={!day.dateStr}
+                        aria-label={day.dateStr ? `Asignar fecha ${day.day}` : undefined}
+                        className={`aspect-square flex flex-col items-center justify-center rounded-[var(--radius-sm)] min-h-[42px] transition-colors duration-150 ${day.otherMonth ? 'opacity-20' : 'active:scale-95'} ${day.isToday ? 'bg-[var(--accent-fill)] text-[var(--on-accent)]' : 'text-[var(--text)] hover:bg-[var(--hover)]'}`}>
+                        <span className={`text-[12px] ${day.isToday ? 'font-semibold' : ''}`}>{day.day}</span>
+                        {day.tasks.length > 0 && (
+                            <div className="flex gap-[2px] mt-1">
+                                {day.tasks.slice(0, 3).map((task, taskIndex) => {
+                                    const category = categories.find(item => item.id === (task.category || 'none'));
+                                    return <div key={taskIndex} className="w-1 h-1 rounded-full"
+                                        style={{ background: day.isToday ? 'var(--on-accent)' : (task.completed ? 'var(--border-strong)' : category && category.id !== 'none' ? category.color : 'var(--text-muted)') }} />;
                                 })}
                             </div>
                         )}
@@ -77,9 +79,9 @@ export default function CalendarView({ tasks, onSetDueDate }) {
                 ))}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[var(--border)] flex justify-between text-xs text-[var(--text-muted)] font-semibold">
-                <span>{totalTasks} tarea{totalTasks !== 1 ? 's' : ''} con fecha</span>
-                <span>{tasks.filter(t => t.completed && t.dueDate).length} completada{tasks.filter(t => t.completed && t.dueDate).length !== 1 ? 's' : ''}</span>
+            <div className="mt-4 pt-3 border-t border-[var(--border)] flex justify-between text-[10.5px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+                <span>{totalTasks} con fecha</span>
+                <span>{completedDated} hecha{completedDated !== 1 ? 's' : ''}</span>
             </div>
         </div>
     );

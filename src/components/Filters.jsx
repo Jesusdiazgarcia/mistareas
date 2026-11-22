@@ -1,51 +1,48 @@
 import { useState } from 'react';
 import { categories, priorities } from '../utils/helpers';
 
-const filterData = [
-    { id: 'all', label: 'Todas', icon: <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M1.5 3h9M1.5 6h9M1.5 9h6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> },
-    { id: 'pending', label: 'Pendientes', icon: <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2"/><path d="M6 4v2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> },
-    { id: 'inprogress', label: 'En progreso', icon: <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2"/><path d="M6 4v2l1.5 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-    { id: 'completed', label: 'Hechas', icon: <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2"/><path d="M4 6l1.5 1.5L8 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-    { id: 'recurring', label: 'Recurrentes', icon: <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M10 3A4.5 4.5 0 0 0 3 6a4.5 4.5 0 0 0 7 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M10 1v2.5H7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg> }
+const FILTERS = [
+    { id: 'all', label: 'Todas' },
+    { id: 'pending', label: 'Pendientes' },
+    { id: 'inprogress', label: 'En progreso' },
+    { id: 'completed', label: 'Hechas' },
+    { id: 'recurring', label: 'Recurrentes' }
 ];
+
+const FIELD = 'w-full px-3 py-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text)] text-[13px] outline-none focus:border-[var(--accent)] transition-colors duration-150 appearance-none';
+const CHEVRON = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238a919b' d='M2 3.5l3 3 3-3'/%3E%3C/svg%3E\")";
 
 export default function Filters({ currentFilter, setFilter, search, setSearch, filterCategory, setFilterCategory, filterPriority, setFilterPriority, currentSort, setSort }) {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const activeCount = [filterCategory !== 'all', filterPriority !== 'all', currentSort !== 'default'].filter(Boolean).length;
-
-    const sel = "w-full px-3 py-2.5 rounded-[14px] border border-[var(--border)] bg-[var(--card)] text-[var(--text)] text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-light)] appearance-none transition-all duration-200";
+    const selectStyle = { backgroundImage: CHEVRON, backgroundPosition: 'right 10px center', backgroundRepeat: 'no-repeat', paddingRight: '26px' };
 
     return (
         <div className="mb-4">
             <div className="relative">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" width="15" height="15" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4"/><path d="M9.5 9.5L12.5 12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                <input type="search" placeholder="Buscar tareas..." value={search} onChange={e => setSearch(e.target.value)}
-                    className="w-full h-11 pl-10 pr-11 rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--card)] text-[var(--text)] placeholder:text-[var(--text-muted)] text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-all duration-200"
-                    style={{boxShadow: 'var(--shadow-xs)'}} />
-                <button onClick={() => setShowAdvanced(!showAdvanced)}
-                    className={`absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-[var(--radius-lg)] flex items-center justify-center transition-all duration-200 active:scale-90 ${showAdvanced ? 'bg-[var(--accent)] text-white shadow-xs' : 'text-[var(--text-muted)] hover:bg-[var(--hover)]'}`}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M4 7h6M6 10h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M9.5 9.5L12.5 12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+                <input type="search" placeholder="Buscar tareas..." value={search} onChange={event => setSearch(event.target.value)}
+                    className="w-full h-10 pl-9 pr-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] text-[var(--text)] placeholder:text-[var(--text-muted)] text-[13px] outline-none focus:border-[var(--border-strong)] transition-colors duration-150" />
+                <button onClick={() => setShowAdvanced(!showAdvanced)} aria-label="Filtros avanzados" aria-expanded={showAdvanced}
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center transition-colors duration-150 ${showAdvanced || activeCount > 0 ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}>
+                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M4 7h6M6 10h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
                     {activeCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--danger)] text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-xs">{activeCount}</span>
+                        <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--accent-fill)] text-[var(--on-accent)] text-[8px] font-bold flex items-center justify-center">{activeCount}</span>
                     )}
                 </button>
             </div>
 
             {showAdvanced && (
-                <div className="mt-2.5 p-3 bg-[var(--panel)] border border-[var(--border)] rounded-[var(--radius-xl)] space-y-2.5 animate-[fadeIn_0.15s_ease]"
-                    style={{boxShadow: 'var(--shadow-xs)'}}>
-                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={sel}
-                        style={{backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238896a6' d='M2 3.5l3 3 3-3'/%3E%3C/svg%3E")`, backgroundPosition: 'right 10px center', backgroundRepeat: 'no-repeat', paddingRight: '28px'}}>
+                <div className="mt-2 p-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] space-y-2 animate-[fadeIn_0.15s_ease]">
+                    <select value={filterCategory} onChange={event => setFilterCategory(event.target.value)} aria-label="Categoría" className={FIELD} style={selectStyle}>
                         <option value="all">Todas las categorías</option>
-                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
                     </select>
-                    <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} className={sel}
-                        style={{backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238896a6' d='M2 3.5l3 3 3-3'/%3E%3C/svg%3E")`, backgroundPosition: 'right 10px center', backgroundRepeat: 'no-repeat', paddingRight: '28px'}}>
+                    <select value={filterPriority} onChange={event => setFilterPriority(event.target.value)} aria-label="Prioridad" className={FIELD} style={selectStyle}>
                         <option value="all">Todas las prioridades</option>
-                        {priorities.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        {priorities.map(priority => <option key={priority.id} value={priority.id}>{priority.name}</option>)}
                     </select>
-                    <select value={currentSort} onChange={e => setSort(e.target.value)} className={sel}
-                        style={{backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238896a6' d='M2 3.5l3 3 3-3'/%3E%3C/svg%3E")`, backgroundPosition: 'right 10px center', backgroundRepeat: 'no-repeat', paddingRight: '28px'}}>
+                    <select value={currentSort} onChange={event => setSort(event.target.value)} aria-label="Orden" className={FIELD} style={selectStyle}>
                         <option value="default">Orden default</option>
                         <option value="priority">Por prioridad</option>
                         <option value="date">Por fecha</option>
@@ -55,12 +52,11 @@ export default function Filters({ currentFilter, setFilter, search, setSearch, f
                 </div>
             )}
 
-            <div className="flex gap-2 mt-2.5 overflow-x-auto pb-1" style={{scrollbarWidth:'none', WebkitOverflowScrolling:'touch'}}>
-                {filterData.map(f => (
-                    <button key={f.id} onClick={() => setFilter(f.id)}
-                        className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-lg)] text-[12px] font-bold whitespace-nowrap transition-all duration-200 active:scale-95 ${currentFilter === f.id ? 'bg-[var(--accent)] text-white shadow-xs' : 'bg-[var(--card)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border)]'}`}
-                        style={currentFilter === f.id ? {boxShadow: 'var(--shadow-xs)'} : {}}>
-                        {f.icon} {f.label}
+            <div className="flex gap-5 mt-3 overflow-x-auto border-b border-[var(--border)]" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {FILTERS.map(item => (
+                    <button key={item.id} onClick={() => setFilter(item.id)} aria-pressed={currentFilter === item.id}
+                        className={`shrink-0 -mb-px h-9 px-0.5 border-b text-[11.5px] tracking-[0.02em] whitespace-nowrap transition-colors duration-150 ${currentFilter === item.id ? 'border-[var(--accent)] text-[var(--text)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+                        {item.label}
                     </button>
                 ))}
             </div>
