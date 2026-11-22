@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Mis Tareas — M en caja</title>
+  <path fill="#000000" fill-rule="evenodd"
+        d="M24 72a48 48 0 0 1 48-48h112a48 48 0 0 1 48 48v112a48 48 0 0 1-48 48H72a48 48 0 0 1-48-48z
+           M72 184V96h32l24 34 24-34h32v88h-26v-52l-30 42-30-42v52z"/>
+</svg>
