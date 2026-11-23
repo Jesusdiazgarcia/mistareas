@@ -15,6 +15,7 @@ import Modal from './components/Modal';
 import Stats from './components/Stats';
 import History from './components/History';
 import WeeklyReport from './components/WeeklyReport';
+import StorageWarning from './components/StorageWarning';
 import AppFooter, { ImportInputs } from './components/AppFooter';
 
 const MODAL_TITLES = { history: 'Historial', stats: 'Estadísticas', report: 'Reporte Semanal' };
@@ -33,6 +34,8 @@ export default function App() {
     const importer = useImportExport({
         tasks: store.tasks,
         syncTasks: store.syncTasks,
+        history: store.history,
+        syncHistory: store.syncHistory,
         addHistory: store.addHistory
     });
     const { isDark, toggleTheme } = useTheme();
@@ -73,10 +76,14 @@ export default function App() {
                     onStats={() => openModal('stats')}
                     onReport={() => openModal('report')}
                     isDark={isDark}
-                    toggleTheme={toggleTheme}
-                    syncStatus={store.syncStatus} />
+                    toggleTheme={toggleTheme} />
 
                 <div className="min-w-0 lg:max-w-[640px]">
+                    <StorageWarning
+                        message={store.storageError}
+                        onDismiss={store.dismissStorageError}
+                        onExport={importer.exportBackup} />
+
                     <p className="brand-type mb-6 text-[19px] leading-[1.25] text-[var(--text)] lg:mb-9 lg:text-[26px] lg:leading-[1.2]">
                         {weekday}, {dateLine}
                     </p>

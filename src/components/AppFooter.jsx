@@ -5,10 +5,9 @@ import { editionNumber } from '../utils/helpers';
 const BUTTON = 'h-9 px-3.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-muted)] text-[10.5px] font-medium uppercase tracking-[0.1em] disabled:opacity-25 active:scale-[0.98] transition-colors duration-150 hover:text-[var(--text)] hover:border-[var(--border-strong)]';
 const ITEM = 'w-full px-3 py-2 text-left text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-sm)] transition-colors duration-150';
 
-/** Pie de página: limpiar completadas e importar/exportar. */
+/** Pie de página: limpiar completadas, importar/exportar y respaldos. */
 export default function AppFooter({ hasCompleted, onClearCompleted, importer, total }) {
     const [open, setOpen] = useState(false);
-
     const run = (action) => () => { action(); setOpen(false); };
 
     return (
@@ -35,7 +34,12 @@ export default function AppFooter({ hasCompleted, onClearCompleted, importer, to
                             </div>
                             <MenuDivider />
                             <div className="p-1">
-                                <button onClick={run(importer.exportCalendar)} className={`${ITEM} text-[var(--accent)]`}>
+                                <button onClick={run(importer.exportBackup)} className={ITEM}>Exportar respaldo (todo)</button>
+                                <button onClick={run(importer.openBackupPicker)} className={ITEM}>Restaurar respaldo</button>
+                            </div>
+                            <MenuDivider />
+                            <div className="p-1">
+                                <button onClick={run(importer.exportCalendar)} className={ITEM + ' text-[var(--accent)]'}>
                                     Exportar al calendario
                                 </button>
                             </div>
@@ -65,6 +69,7 @@ export function ImportInputs({ importer }) {
             <input ref={importer.pdfInputRef} type="file" accept=".pdf" hidden onChange={onChange(importer.importPdf)} />
             <input ref={importer.textInputRef} type="file" accept=".txt,.md" hidden onChange={onChange(importer.importText)} />
             <input ref={importer.jsonInputRef} type="file" accept=".json" hidden onChange={onChange(importer.importJson)} />
+            <input ref={importer.backupInputRef} type="file" accept=".json" hidden onChange={onChange(importer.importBackup)} />
         </>
     );
 }

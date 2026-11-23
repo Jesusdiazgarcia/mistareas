@@ -11,24 +11,7 @@ const VIEWS = [
     { value: 'kanban', label: 'Kanban' }
 ];
 
-const SYNC = {
-    synced: { label: 'Sync', dot: 'bg-[var(--accent)]', text: 'text-[var(--text-muted)]' },
-    connecting: { label: 'Sync', dot: 'bg-[var(--accent)] animate-[pulse_2s_ease-in-out_infinite]', text: 'text-[var(--text-muted)]' },
-    error: { label: 'Error', dot: 'bg-[var(--danger)]', text: 'text-[var(--danger)]' }
-};
-
-function SyncBadge({ status }) {
-    const badge = SYNC[status];
-    if (!badge) return null;
-    return (
-        <span className={`flex items-center gap-1.5 mr-1 text-[9px] font-medium uppercase tracking-[0.16em] ${badge.text}`}>
-            <span className={`w-1 h-1 rounded-full ${badge.dot}`} />
-{badge.label}
-        </span>
-    );
-}
-
-export default function Header({ statsText, currentView, setView, onUndo, onRedo, canUndo, canRedo, onHistory, onStats, onReport, isDark, toggleTheme, syncStatus }) {
+export default function Header({ statsText, currentView, setView, onUndo, onRedo, canUndo, canRedo, onHistory, onStats, onReport, isDark, toggleTheme }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -40,7 +23,6 @@ export default function Header({ statsText, currentView, setView, onUndo, onRedo
                 </div>
 
                 <div className="flex items-center gap-0.5">
-                    <SyncBadge status={syncStatus} />
                     <button onClick={toggleTheme} aria-label="Cambiar tema" className={ICON_BUTTON}>
                         {isDark
                             ? <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" /><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
@@ -84,7 +66,7 @@ export default function Header({ statsText, currentView, setView, onUndo, onRedo
                 </div>
             </div>
 
-            <p className="mt-3 text-[11px] leading-relaxed text-[var(--text-muted)] tracking-[0.02em] lg:mt-4">{statsText}</p>
+            <p aria-live="polite" className="mt-3 text-[11px] leading-relaxed text-[var(--text-muted)] tracking-[0.02em] lg:mt-4">{statsText}</p>
         </header>
     );
 }

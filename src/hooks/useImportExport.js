@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { categories, priorities, repeats } from '../utils/helpers';
 import { createImportedTask } from '../utils/taskModel';
+import { mergeTasks, parseBackupJson, parseTasksJson } from '../utils/taskSchema';
 import { parseTasksFromText } from '../utils/textParser';
 import { downloadICS, generateTasksICS } from '../utils/calendarExport';
 
@@ -23,11 +24,12 @@ function today() {
     return new Date().toISOString().slice(0, 10);
 }
 
-/** Importación y exportación de tareas (JSON, CSV, TXT, PDF e ICS). */
-export function useImportExport({ tasks, syncTasks, addHistory }) {
+/** Importación y exportación de tareas (JSON, CSV, TXT, PDF e ICS) y respaldos. */
+export function useImportExport({ tasks, syncTasks, history, syncHistory, addHistory }) {
     const pdfInputRef = useRef(null);
     const textInputRef = useRef(null);
     const jsonInputRef = useRef(null);
+    const backupInputRef = useRef(null);
 
     const appendParsed = (parsed, label) => {
         if (parsed.length === 0) {
@@ -38,14 +40,67 @@ export function useImportExport({ tasks, syncTasks, addHistory }) {
         addHistory('created', `[${label}] ${parsed.length} tareas`);
     };
 
+    const exportBackup = () => {
+        const blob = new Blob([JSON.stringify({
+            app: 'mis-tareas',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            tasks,
+            history
+        }, null, 2)], { type: 'application/json' });
+        downloadBlob(`mis_tareas_respaldo_${today()}.json`, blob);
+    };
+
+    /**
+     * Importa un JSON de tareas. Nunca reemplaza en silencio: primero valida,
+     * luego pide confirmación y, si se reemplaza, descarga un respaldo previo.
+     */
     const importJson = (file) => {
         readFile(file, (raw) => {
-            try {
-                const imported = JSON.parse(raw);
-                if (Array.isArray(imported)) syncTasks(imported);
-            } catch (error) {
-                console.error('Import error:', error);
+            const result = parseTasksJson(raw);
+            if (!result.ok) {
+                alert(`No se importó nada.\n\n${result.error}`);
+                return;
             }
+
+            const skipped = result.rejected > 0
+                ? `\nSe omitirán ${result.rejected} entrada(s) sin texto válido.`
+                : '';
+            const replace = window.confirm(
+                `El archivo tiene ${result.tasks.length} tarea(s) válida(s).${skipped}\n\n` +
+                `Aceptar: reemplazar tus ${tasks.length} tarea(s) actuales (se descargará un respaldo antes).\n` +
+                `Cancelar: añadirlas a tu lista actual.`
+            );
+
+            if (replace) {
+                exportBackup();
+                syncTasks(result.tasks);
+            } else {
+                syncTasks(prev => [...prev, ...mergeTasks(result.tasks, prev)]);
+            }
+            addHistory('created', `[Importados JSON] ${result.tasks.length} tareas`);
+        });
+    };
+
+    /** Restaura un respaldo completo validándolo y avisando antes de reemplazar. */
+    const importBackup = (file) => {
+        readFile(file, (raw) => {
+            const result = parseBackupJson(raw);
+            if (!result.ok) {
+                alert(`No se restauró nada.\n\n${result.error}`);
+                return;
+            }
+
+            const confirmed = window.confirm(
+                `El respaldo tiene ${result.tasks.length} tarea(s) y ${result.history.length} registro(s) de historial.\n\n` +
+                `Esto reemplazará tus ${tasks.length} tarea(s) actuales y tu historial.\n` +
+                `Se descargará un respaldo del estado actual antes de continuar.`
+            );
+            if (!confirmed) return;
+
+            exportBackup();
+            syncTasks(result.tasks);
+            syncHistory(result.history);
         });
     };
 
@@ -56,7 +111,8 @@ export function useImportExport({ tasks, syncTasks, addHistory }) {
     const importPdf = async (file) => {
         try {
             const pdfjsLib = await import('pdfjs-dist');
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+            const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
+            pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
             const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
             let fullText = '';
             for (let page = 1; page <= pdf.numPages; page += 1) {
@@ -109,13 +165,17 @@ export function useImportExport({ tasks, syncTasks, addHistory }) {
         openPdfPicker: () => pdfInputRef.current?.click(),
         openTextPicker: () => textInputRef.current?.click(),
         openJsonPicker: () => jsonInputRef.current?.click(),
+        openBackupPicker: () => backupInputRef.current?.click(),
         pdfInputRef,
         textInputRef,
         jsonInputRef,
+        backupInputRef,
         importJson,
+        importBackup,
         importText,
         importPdf,
         exportJson,
+        exportBackup,
         exportCsv,
         exportCalendar,
         exportSelectionToCalendar

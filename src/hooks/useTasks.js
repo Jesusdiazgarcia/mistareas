@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFirebaseSync } from './useFirebaseSync';
+import { useTaskStore } from './useTaskStore';
 import { generateId } from '../utils/helpers';
 import { applyRedo, applyUndo, buildStatsText, createTask } from '../utils/taskModel';
 
 const HISTORY_LIMIT = 100;
 
 /**
- * Estado y operaciones de tareas: persistencia (Firebase + localStorage),
+ * Estado y operaciones de tareas: persistencia local en el navegador,
  * CRUD, historial y deshacer/rehacer.
  */
 export function useTasks() {
-    const { tasks, syncTasks, history, syncHistory, isSyncing, syncStatus } = useFirebaseSync();
+    const { tasks, syncTasks, history, syncHistory, storageError, dismissStorageError } = useTaskStore();
     const [undoStack, setUndoStack] = useState([]);
     const [redoStack, setRedoStack] = useState([]);
     const undoRef = useRef(null);
@@ -206,8 +206,8 @@ export function useTasks() {
         tasks,
         syncTasks,
         history,
-        isSyncing,
-        syncStatus,
+        storageError,
+        dismissStorageError,
         statsText,
         addHistory,
         addTask,
