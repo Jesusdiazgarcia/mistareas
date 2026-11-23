@@ -1,11 +1,13 @@
+import { useCallback, useState } from 'react';
+
+const LS_KEYS = { tasks: 'tasks', history: 'history', theme: 'theme' };
+
 /**
  * Estado de tareas e historial guardado localmente en el navegador.
  *
  * Comportamiento actual: cada dispositivo/sesión tiene su propia lista.
  * No hay sincronización con Firebase. Todo queda en localStorage.
  */
-
-const LS_KEYS = { tasks: 'tasks', history: 'history', theme: 'theme' };
 
 function loadLocal(key, fallback) {
   try {
