@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
  * Hoja/modal accesible: cierra con Esc, atrapa el foco mientras está abierto y
  * lo devuelve al elemento que lo abrió.
  */
-export default function Modal({ show, title, onClose, onSave, mode, children }) {
+export default function Modal({ show, title, onClose, children }) {
     const panelRef = useRef(null);
     const previousFocus = useRef(null);
     const titleId = 'modal-title';
@@ -70,18 +70,6 @@ export default function Modal({ show, title, onClose, onSave, mode, children }) 
                 <div className="px-5 pb-[calc(16px+env(safe-area-inset-bottom,0px))] overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {children}
                 </div>
-                {!['history', 'stats', 'report'].includes(mode) && (
-                    <div className="flex gap-2 px-5 py-3 pb-[calc(12px+env(safe-area-inset-bottom,0px))] border-t border-[var(--border)]">
-                        <button onClick={onClose}
-                            className="flex-1 h-11 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-secondary)] text-[12px] tracking-[0.04em] active:scale-[0.99] transition-colors duration-150 hover:text-[var(--text)]">
-                            Cancelar
-                        </button>
-                        <button onClick={onSave}
-                            className="flex-1 h-11 rounded-[var(--radius-sm)] bg-[var(--accent-fill)] hover:bg-[var(--accent-hover)] text-[var(--on-accent)] text-[12px] font-semibold tracking-[0.04em] active:scale-[0.99] transition-colors duration-150">
-                            Guardar
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );

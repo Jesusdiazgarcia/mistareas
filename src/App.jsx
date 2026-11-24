@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTasks } from './hooks/useTasks';
 import { useTaskFilters } from './hooks/useTaskFilters';
 import { useSelection } from './hooks/useSelection';
@@ -17,13 +17,34 @@ import History from './components/History';
 import WeeklyReport from './components/WeeklyReport';
 import StorageWarning from './components/StorageWarning';
 import AppFooter, { ImportInputs } from './components/AppFooter';
+import TodayView from './components/TodayView';
+import TrashView from './components/TrashView';
+import UpdatePrompt from './components/UpdatePrompt';
+import { usePwaUpdate } from './hooks/usePwaUpdate';
+import FocusView from './components/FocusView';
+import DayReview from './components/DayReview';
+import ReminderBanner from './components/ReminderBanner';
+import DueSummary from './components/DueSummary';
 
-const MODAL_TITLES = { history: 'Historial', stats: 'Estadísticas', report: 'Reporte Semanal' };
+const MODAL_TITLES = { history: 'Historial', stats: 'Estadísticas', report: 'Reporte Semanal', trash: 'Papelera', review: 'Cierre del día' };
 
-function ModalContent({ mode, tasks, history }) {
-    if (mode === 'history') return <History history={history} />;
+function ModalContent({ mode, tasks, history, trash, onUndoHistory, onRestore, onDeleteForever, onEmptyTrash, onRescheduleOverdue, onOpenToday }) {
+    if (mode === 'history') return <History history={history} onUndo={onUndoHistory} />;
     if (mode === 'stats') return <Stats tasks={tasks} />;
     if (mode === 'report') return <WeeklyReport tasks={tasks} />;
+    if (mode === 'review') return (
+        <DayReview
+            tasks={tasks}
+            onRescheduleOverdue={onRescheduleOverdue}
+            onOpenToday={onOpenToday} />
+    );
+    if (mode === 'trash') return (
+        <TrashView
+            trash={trash}
+            onRestore={onRestore}
+            onDeleteForever={onDeleteForever}
+            onEmptyTrash={onEmptyTrash} />
+    );
     return null;
 }
 
@@ -39,6 +60,8 @@ export default function App() {
         addHistory: store.addHistory
     });
     const { isDark, toggleTheme } = useTheme();
+    const pwa = usePwaUpdate();
+    const focusDone = store.focusIds.filter(id => store.tasks.find(task => task.id === id)?.completed).length;
 
     const [view, setView] = useState('list');
     const [modal, setModal] = useState({ show: false, mode: '' });
@@ -53,8 +76,47 @@ export default function App() {
         });
     }, []);
 
+    /** Lleva a la tarea del recordatorio: cambia a Lista, hace scroll y la resalta un momento. */
+    const openReminderTask = useCallback((id) => {
+        setView('list');
+        setTimeout(() => {
+            const element = document.querySelector(`[data-task-id="${id}"]`);
+            if (!element) return;
+            element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            element.style.transition = 'background-color 0.4s ease';
+            element.style.backgroundColor = 'var(--accent-soft)';
+            setTimeout(() => { element.style.backgroundColor = ''; }, 1600);
+        }, 80);
+    }, []);
+
     const openModal = useCallback((mode) => setModal({ show: true, mode }), []);
     const closeModal = useCallback(() => setModal({ show: false, mode: '' }), []);
+
+    // Captura rápida: "n" enfoca el composer; Escape cierra el modal abierto.
+    useEffect(() => {
+        const handler = (event) => {
+            if (event.metaKey || event.ctrlKey || event.altKey) return;
+            if (event.key === 'Escape' && modal.show) {
+                closeModal();
+                return;
+            }
+            const active = document.activeElement;
+            const typing = active && (
+                active.tagName === 'INPUT' ||
+                active.tagName === 'TEXTAREA' ||
+                active.tagName === 'SELECT' ||
+                active.isContentEditable
+            );
+            if (typing || modal.show) return;
+            if (event.key === 'n' || event.key === 'N') {
+                event.preventDefault();
+                if (view !== 'list') setView('list');
+                setTimeout(() => document.getElementById('taskInput')?.focus(), 0);
+            }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [modal.show, view, closeModal]);
 
     const now = new Date();
     const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -75,6 +137,10 @@ export default function App() {
                     onHistory={() => openModal('history')}
                     onStats={() => openModal('stats')}
                     onReport={() => openModal('report')}
+                    onTrash={() => openModal('trash')}
+                    onReview={() => openModal('review')}
+                    focusDone={focusDone}
+                    focusTotal={store.focusIds.length}
                     isDark={isDark}
                     toggleTheme={toggleTheme} />
 
@@ -83,6 +149,10 @@ export default function App() {
                         message={store.storageError}
                         onDismiss={store.dismissStorageError}
                         onExport={importer.exportBackup} />
+
+                    <ReminderBanner tasks={store.tasks} onOpen={openReminderTask} />
+
+                    <DueSummary tasks={store.tasks} onOpenToday={() => setView('today')} />
 
                     <p className="brand-type mb-6 text-[19px] leading-[1.25] text-[var(--text)] lg:mb-9 lg:text-[26px] lg:leading-[1.2]">
                         {weekday}, {dateLine}
@@ -118,6 +188,24 @@ export default function App() {
                         <CalendarView tasks={store.tasks} onSetDueDate={() => setView('list')} />
                     )}
 
+                    {view === 'focus' && (
+                        <FocusView
+                            tasks={store.tasks}
+                            focusIds={store.focusIds}
+                            onToggle={store.toggleTask}
+                            onToggleFocus={store.toggleFocus}
+                            onClear={store.clearFocus}
+                            onGoList={() => setView('list')} />
+                    )}
+
+                    {view === 'today' && (
+                        <TodayView
+                            tasks={store.tasks}
+                            onToggle={store.toggleTask}
+                            onSetDueDate={() => setView('list')}
+                            onSnooze={store.snoozeTask} />
+                    )}
+
                     {view === 'kanban' && (
                         <KanbanView tasks={store.tasks} onToggle={store.toggleTask} onMoveTask={store.moveKanbanTask} />
                     )}
@@ -133,13 +221,22 @@ export default function App() {
                     <Modal
                         show={modal.show}
                         title={MODAL_TITLES[modal.mode]}
-                        mode={modal.mode}
-                        onClose={closeModal}
-                        onSave={closeModal}>
-                        <ModalContent mode={modal.mode} tasks={store.tasks} history={store.history} />
+                        onClose={closeModal}>
+                        <ModalContent
+                            mode={modal.mode}
+                            tasks={store.tasks}
+                            history={store.history}
+                            trash={store.trash}
+                            onUndoHistory={store.undoHistoryEntry}
+                            onRestore={store.restoreFromTrash}
+                            onDeleteForever={store.deleteForever}
+                            onEmptyTrash={store.emptyTrash}
+                            onRescheduleOverdue={store.rescheduleOverdue}
+                            onOpenToday={() => { closeModal(); setView('today'); }} />
                     </Modal>
                 </div>
             </div>
+            <UpdatePrompt show={pwa.needRefresh} onUpdate={pwa.applyUpdate} onDismiss={pwa.dismissUpdate} />
         </main>
     );
 }

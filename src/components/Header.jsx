@@ -7,11 +7,13 @@ const ICON_BUTTON = 'w-8 h-8 rounded-[var(--radius-sm)] flex items-center justif
 
 const VIEWS = [
     { value: 'list', label: 'Lista' },
+    { value: 'today', label: 'Hoy' },
+    { value: 'focus', label: 'Mi día' },
     { value: 'calendar', label: 'Calendario' },
     { value: 'kanban', label: 'Kanban' }
 ];
 
-export default function Header({ statsText, currentView, setView, onUndo, onRedo, canUndo, canRedo, onHistory, onStats, onReport, isDark, toggleTheme }) {
+export default function Header({ statsText, currentView, setView, onUndo, onRedo, canUndo, canRedo, onHistory, onStats, onReport, onTrash, onReview, focusDone, focusTotal, isDark, toggleTheme }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -37,7 +39,9 @@ export default function Header({ statsText, currentView, setView, onUndo, onRedo
                                 <HeaderMenu
                                     onReport={() => { onReport(); setMenuOpen(false); }}
                                     onStats={() => { onStats(); setMenuOpen(false); }}
-                                    onHistory={() => { onHistory(); setMenuOpen(false); }} />
+                                    onHistory={() => { onHistory(); setMenuOpen(false); }}
+                                    onTrash={() => { onTrash(); setMenuOpen(false); }}
+                                    onReview={() => { onReview(); setMenuOpen(false); }} />
                             </MenuPanel>
                         )}
                     </div>
@@ -51,6 +55,9 @@ export default function Header({ statsText, currentView, setView, onUndo, onRedo
                             aria-current={currentView === tab.value ? 'page' : undefined}
                             className={`view-tab shrink-0 -mb-px h-10 px-0.5 border-b text-[12px] tracking-[0.02em] transition-colors duration-150 ${currentView === tab.value ? 'border-[var(--accent)] text-[var(--text)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
                             {tab.label}
+                            {tab.value === 'focus' && focusTotal > 0 && (
+                                <span className="figure ml-1.5 text-[10px] text-[var(--text-muted)]">{focusDone}/{focusTotal}</span>
+                            )}
                         </button>
                     ))}
                 </div>

@@ -71,7 +71,7 @@ export default function TaskList({ tasks, api, selection, collapsed, onToggleCol
                         onToggleSubtask={api.toggleSubtask} onAddSubtask={api.addSubtask}
                         onToggleSelect={toggleSelect} onEdit={api.editTask} onToggleInProgress={api.toggleInProgress}
                         collapsed={collapsed.has(task.id)} onToggleCollapse={onToggleCollapse}
-                        onSaveNotes={api.saveNotes}
+                        onSaveNotes={api.saveNotes} onReschedule={api.rescheduleTask} onSnooze={api.snoozeTask}
                         onDragStart={(event) => { setDraggedId(task.id); event.dataTransfer.effectAllowed = 'move'; }}
                         onDragEnd={() => setDraggedId(null)}
                         onDragOver={(event) => event.preventDefault()}

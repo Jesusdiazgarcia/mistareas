@@ -24,6 +24,16 @@ export const repeats = {
 
 export const priorityOrder = { high: 3, medium: 2, low: 1, none: 0 };
 
+/** Tareas foco que permite "Mi día". */
+export const FOCUS_LIMIT = 3;
+
+/** Fecha local en formato YYYY-MM-DD. */
+export function dateKey(date = new Date()) {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export function formatMinutes(min) {
     if (!min || min <= 0) return '';
     if (min < 60) return `${min}min`;

@@ -1,4 +1,5 @@
 import { categories, priorities, formatMinutes } from '../utils/helpers';
+import StatsInsights from './StatsInsights';
 
 function calcActualMinutes(startedAt, completedAt) {
     if (!startedAt || !completedAt) return 0;
@@ -100,6 +101,8 @@ export default function Stats({ tasks }) {
                     ))}
                 </div>
             )}
+
+            <StatsInsights tasks={tasks} />
         </>
     );
 }

@@ -12,6 +12,7 @@ export function createTask(data, tasks) {
         priority: data.priority,
         repeat: data.repeat,
         dueDate: data.dueDate,
+        dueTime: data.dueTime || null,
         subtasks: [],
         notes: data.notes,
         estimatedMinutes: data.estimatedMinutes,
@@ -31,6 +32,7 @@ export function createImportedTask(parsed, index, tasks) {
         priority: parsed.priority,
         repeat: 'none',
         dueDate: null,
+        dueTime: null,
         subtasks: [],
         notes: parsed.notes || '',
         estimatedMinutes: 0,
@@ -92,6 +94,14 @@ export function applyUndo(tasks, action) {
             return patchById(tasks, action.id, { text: action.prevText });
         case 'toggle-progress':
             return patchById(tasks, action.id, { inProgress: action.prev });
+        case 'reschedule':
+            return patchById(tasks, action.id, { dueDate: action.prevDate, dueTime: action.prevTime });
+        case 'bulk-reschedule': {
+            const previous = new Map(action.prev.map(item => [item.id, item]));
+            return tasks.map(t => (previous.has(t.id)
+                ? { ...t, dueDate: previous.get(t.id).dueDate, dueTime: previous.get(t.id).dueTime }
+                : t));
+        }
         default:
             return tasks;
     }
@@ -118,6 +128,12 @@ export function applyRedo(tasks, action) {
             return patchById(tasks, action.id, { text: action.newText });
         case 'toggle-progress':
             return patchById(tasks, action.id, { inProgress: !action.prev });
+        case 'reschedule':
+            return patchById(tasks, action.id, { dueDate: action.nextDate, dueTime: action.nextTime });
+        case 'bulk-reschedule': {
+            const ids = new Set(action.ids);
+            return tasks.map(t => (ids.has(t.id) ? { ...t, dueDate: action.nextDate } : t));
+        }
         default:
             return tasks;
     }

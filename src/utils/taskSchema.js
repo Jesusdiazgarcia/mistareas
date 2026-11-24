@@ -23,6 +23,11 @@ function asDateOrNull(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
 }
 
+function asTimeOrNull(value) {
+  if (typeof value !== 'string') return null;
+  return /^([01]d|2[0-3]):[0-5]d$/.test(value) ? value : null;
+}
+
 function normalizeSubtasks(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -47,6 +52,7 @@ export function normalizeTask(raw, fallbackId) {
     priority: typeof raw.priority === 'string' ? raw.priority : 'none',
     repeat: typeof raw.repeat === 'string' ? raw.repeat : 'none',
     dueDate: asDateOrNull(raw.dueDate),
+    dueTime: asTimeOrNull(raw.dueTime),
     subtasks: normalizeSubtasks(raw.subtasks),
     notes: asText(raw.notes, MAX_NOTES),
     estimatedMinutes: Number.isFinite(raw.estimatedMinutes) && raw.estimatedMinutes > 0 ? raw.estimatedMinutes : 0,

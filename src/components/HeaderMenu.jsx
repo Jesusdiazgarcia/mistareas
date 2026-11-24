@@ -1,12 +1,14 @@
 const ITEMS = [
     { key: 'report', label: 'Reporte semanal' },
     { key: 'stats', label: 'Estadísticas' },
-    { key: 'history', label: 'Historial' }
+    { key: 'history', label: 'Historial' },
+    { key: 'review', label: 'Cierre del día' },
+    { key: 'trash', label: 'Papelera' }
 ];
 
 /** Acciones del menú de la cabecera. */
-export default function HeaderMenu({ onReport, onStats, onHistory }) {
-    const handlers = { report: onReport, stats: onStats, history: onHistory };
+export default function HeaderMenu({ onReport, onStats, onHistory, onTrash, onReview }) {
+    const handlers = { report: onReport, stats: onStats, history: onHistory, trash: onTrash, review: onReview };
 
     return (
         <div className="p-1">

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { categories, priorities } from '../utils/helpers';
+import { parseQuickAdd, quickAddChips } from '../utils/quickAdd';
 
 const emojis = ['😀','😂','😍','🤩','😎','🤔','💪','🔥','⭐','✅','❌','⚠️','🚀','💡','❤️','👏','🎉','✨','📝','📅','⏰','🔔','🏆','💎','☕'];
 
@@ -14,15 +15,29 @@ export default function TaskInput({ onAdd }) {
     const [priority, setPriority] = useState('none');
     const [repeat, setRepeat] = useState('none');
     const [dueDate, setDueDate] = useState('');
+    const [dueTime, setDueTime] = useState('');
     const [estMin, setEstMin] = useState('');
     const [notes, setNotes] = useState('');
     const inputRef = useRef(null);
 
+    const quick = text.trim() ? parseQuickAdd(text) : null;
+    const quickChips = quickAddChips(quick);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         if (!text.trim()) return;
-        onAdd({ text: text.trim(), category, priority, repeat, dueDate: dueDate || null, estimatedMinutes: parseInt(estMin) || 0, notes: notes.trim() });
-        setText(''); setCategory('none'); setPriority('none'); setRepeat('none'); setDueDate(''); setEstMin(''); setNotes(''); setExpanded(false);
+        const parsed = parseQuickAdd(text);
+        onAdd({
+            text: parsed.text || text.trim(),
+            category: parsed.category || category,
+            priority: parsed.priority || priority,
+            repeat,
+            dueDate: parsed.dueDate || dueDate || null,
+            dueTime: parsed.dueTime || dueTime || null,
+            estimatedMinutes: parsed.estimatedMinutes || parseInt(estMin) || 0,
+            notes: notes.trim()
+        });
+        setText(''); setCategory('none'); setPriority('none'); setRepeat('none'); setDueDate(''); setDueTime(''); setEstMin(''); setNotes(''); setExpanded(false);
         inputRef.current?.focus();
     };
 
@@ -39,9 +54,9 @@ export default function TaskInput({ onAdd }) {
         <form onSubmit={handleSubmit} className="mb-5">
             <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] transition-colors duration-150 focus-within:border-[var(--border-strong)]">
                 <div className="flex items-center gap-2 pl-3.5 pr-1.5 py-1.5">
-                    <input ref={inputRef} type="text" value={text} onChange={event => setText(event.target.value)}
+                    <input id="taskInput" ref={inputRef} type="text" value={text} onChange={event => setText(event.target.value)}
                         onFocus={() => { if (!expanded) setExpanded(true); }}
-                        placeholder="Escribe una nueva tarea..."
+                        placeholder="Escribe una tarea… (mañana 10:00 #trabajo !alta 30min)"
                         maxLength={500}
                         className="flex-1 bg-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] text-[13.5px] outline-none min-w-0 py-2" />
                     <button type="button" onClick={() => setShowEmoji(!showEmoji)} aria-label="Insertar emoji"
@@ -60,6 +75,16 @@ export default function TaskInput({ onAdd }) {
                         </button>
                     )}
                 </div>
+
+                {quickChips.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 px-3.5 pb-2.5">
+                        {quickChips.map(chip => (
+                            <span key={chip} className="h-5 px-1.5 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] text-[9.5px] uppercase tracking-[0.08em] text-[var(--accent)] flex items-center">
+                                {chip}
+                            </span>
+                        ))}
+                    </div>
+                )}
 
                 {showEmoji && (
                     <div className="px-3.5 pb-3 animate-[fadeIn_0.15s_ease]">
@@ -92,6 +117,7 @@ export default function TaskInput({ onAdd }) {
                                 <option value="yearly">Anual</option>
                             </select>
                             <input type="date" value={dueDate} onChange={event => setDueDate(event.target.value)} aria-label="Fecha límite" className={FIELD} />
+                            <input type="time" value={dueTime} onChange={event => setDueTime(event.target.value)} aria-label="Hora" className={FIELD} />
                         </div>
                         <input type="number" placeholder="Minutos estimados" min="0" value={estMin} onChange={event => setEstMin(event.target.value)}
                             className={FIELD} style={{ backgroundImage: 'none' }} />

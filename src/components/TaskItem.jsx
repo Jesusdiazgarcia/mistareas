@@ -11,7 +11,7 @@ function calcActualMinutes(startedAt, completedAt) {
 
 const ACTION = 'w-full px-3 py-2 text-left text-[12.5px] text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--hover)] rounded-[var(--radius-sm)] transition-colors duration-150';
 
-export default function TaskItem({ task, index, selected, onToggle, onDelete, onTogglePin, onToggleSubtask, onAddSubtask, onToggleSelect, onEdit, collapsed, onToggleCollapse, onSaveNotes, onToggleInProgress, onDragStart, onDragEnd, onDragOver, onDrop }) {
+export default function TaskItem({ task, index, selected, onToggle, onDelete, onTogglePin, onToggleSubtask, onAddSubtask, onToggleSelect, onEdit, collapsed, onToggleCollapse, onSaveNotes, onToggleInProgress, onReschedule, onSnooze, onDragStart, onDragEnd, onDragOver, onDrop }) {
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(task.text);
     const [showNotes, setShowNotes] = useState(false);
@@ -19,6 +19,9 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
     const [subtaskInput, setSubtaskInput] = useState('');
     const [showActions, setShowActions] = useState(false);
     const [showSubtaskInput, setShowSubtaskInput] = useState(false);
+    const [showSchedule, setShowSchedule] = useState(false);
+    const [scheduleDate, setScheduleDate] = useState(task.dueDate || '');
+    const [scheduleTime, setScheduleTime] = useState(task.dueTime || '');
     const editRef = useRef(null);
 
     const category = categories.find(item => item.id === (task.category || 'none'));
@@ -40,6 +43,18 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
     const handleAddSubtask = () => {
         if (subtaskInput.trim()) { onAddSubtask(task.id, subtaskInput.trim()); setSubtaskInput(''); }
     };
+    const openSchedule = () => {
+        setScheduleDate(task.dueDate || '');
+        setScheduleTime(task.dueTime || '');
+        setShowSchedule(true);
+        setShowActions(false);
+    };
+    const changeSchedule = (date, time) => {
+        setScheduleDate(date);
+        setScheduleTime(time);
+        onReschedule(task.id, date || null, time || null);
+    };
+
     const handleAddToCalendar = () => {
         const safeName = task.text.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]/g, '_').substring(0, 30);
         downloadICS(`${safeName}.ics`, generateTaskICS(task));
@@ -47,7 +62,7 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
     };
 
     return (
-        <li className={`group relative flex items-start gap-3 py-3.5 border-b border-[var(--border)] last:border-b-0 transition-colors duration-150 ${selected ? 'bg-[var(--accent-soft)]' : ''}`}
+        <li data-task-id={task.id} className={`group relative flex items-start gap-3 py-3.5 border-b border-[var(--border)] last:border-b-0 transition-colors duration-150 ${selected ? 'bg-[var(--accent-soft)]' : ''}`}
             draggable onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop}
             style={task.pinned ? { boxShadow: 'inset 1px 0 0 var(--accent)' } : undefined}>
 
@@ -83,6 +98,7 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
                     {dateInfo && (
                         <span className={dateInfo.status === 'overdue' ? 'text-[var(--danger)]' : dateInfo.status === 'today' ? 'text-[var(--text)]' : ''}>{dateInfo.label}</span>
                     )}
+                    {task.dueTime && <span className="figure">{task.dueTime}</span>}
                     {task.estimatedMinutes > 0 && <span className="figure">{formatMinutes(task.estimatedMinutes)}</span>}
                     {task.completed && actualMinutes > 0 && (
                         <span className={`figure ${task.estimatedMinutes && actualMinutes > task.estimatedMinutes ? 'text-[var(--danger)]' : 'text-[var(--success)]'}`}>
@@ -90,6 +106,21 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
                         </span>
                     )}
                 </div>
+
+                {showSchedule && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <input type="date" value={scheduleDate} aria-label="Fecha límite"
+                            onChange={event => changeSchedule(event.target.value, scheduleTime)}
+                            className="h-8 px-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text)] text-[11.5px] outline-none focus:border-[var(--accent)]" />
+                        <input type="time" value={scheduleTime} aria-label="Hora"
+                            onChange={event => changeSchedule(scheduleDate, event.target.value)}
+                            className="h-8 px-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text)] text-[11.5px] outline-none focus:border-[var(--accent)]" />
+                        <button onClick={() => setShowSchedule(false)}
+                            className="h-8 px-2 text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)] hover:text-[var(--text)]">
+                            Cerrar
+                        </button>
+                    </div>
+                )}
 
                 {task.notes && task.notes.trim() && !showNotes && !editing && (
                     <button onClick={() => setShowNotes(true)}
@@ -155,7 +186,7 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
 
             {showActions && (
                 <MenuPanel onClose={() => setShowActions(false)} overlayClassName="z-10" panelClassName="z-20"
-                    className="right-1 top-10 w-[180px]" shadow="var(--shadow-sm)">
+                    className="right-1 top-10 w-[200px]" shadow="var(--shadow-sm)">
                     <div className="p-1">
                         {!task.completed && (
                             <button onClick={() => { onToggleInProgress(task.id); setShowActions(false); }} className={ACTION}>
@@ -168,6 +199,16 @@ export default function TaskItem({ task, index, selected, onToggle, onDelete, on
                         <button onClick={() => { setShowSubtaskInput(!showSubtaskInput); setShowActions(false); }} className={ACTION}>Subtarea</button>
                         <button onClick={() => { setShowNotes(!showNotes); setShowActions(false); }} className={ACTION}>Notas</button>
                         <button onClick={handleAddToCalendar} className={ACTION}>Añadir al calendario</button>
+                    </div>
+                    <MenuDivider />
+                    <div className="p-1">
+                        <button onClick={() => { onSnooze(task.id, 0); setShowActions(false); }} className={ACTION}>Aplazar a hoy</button>
+                        <button onClick={() => { onSnooze(task.id, 1); setShowActions(false); }} className={ACTION}>Aplazar a mañana</button>
+                        <button onClick={() => { onSnooze(task.id, 7); setShowActions(false); }} className={ACTION}>Aplazar 1 semana</button>
+                        {task.dueDate && (
+                            <button onClick={() => { onSnooze(task.id, null); setShowActions(false); }} className={ACTION}>Quitar fecha</button>
+                        )}
+                        <button onClick={openSchedule} className={ACTION}>Programar hora</button>
                     </div>
                     <MenuDivider />
                     <div className="p-1">
